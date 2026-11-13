@@ -1,0 +1,14 @@
+name = "amana"
+pages_build_output_dir = "public"
+compatibility_date = "2026-11-01"
+
+# Base de données (déjà créée, tables et garde-fous déjà installés)
+[[d1_databases]]
+binding = "DB"
+database_name = "amana"
+database_id = "814f70ac-c6aa-4ab4-a14c-531f60425350"
+
+# Licences Pro liées au téléphone (paiement Notch Pay)
+[[kv_namespaces]]
+binding = "LIC"
+id = "7abcb3f6f34e4776818e3ab0e30f1f7b"

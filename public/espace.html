@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#072652">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>Amana – Espace entreprise</title>
+<style>
+:root{color-scheme:light;--bg:#f1f4f9;--card:#fff;--tx:#0b2147;--mut:#586a88;--bd:#d6deea;--soft:#eaf0f9;--pri:#072652;--acc:#ff7d01}
+[data-theme=dark]{color-scheme:dark;--bg:#041532;--card:#0a2250;--tx:#ecf1fb;--mut:#9fb2d3;--bd:#1f3b70;--soft:#102b5d;--pri:#17397a}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma,sans-serif}
+body{background:var(--bg);color:var(--tx);padding:16px}
+.top,main{max-width:760px;margin:0 auto}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--tx);text-decoration:none}.brand img{width:36px;height:36px;border-radius:9px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:14px}
+h2{font-size:1rem;margin-bottom:10px;border-left:4px solid var(--acc);padding-left:8px}
+label{display:block;font-size:.8rem;font-weight:600;color:var(--mut);margin:8px 0 4px}
+input,select{width:100%;padding:9px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:6px;font-size:.92rem}
+.btn{border:none;border-radius:6px;padding:9px 14px;font-weight:700;cursor:pointer;background:var(--pri);color:#fff;font-size:.85rem;text-decoration:none;display:inline-block}
+.o{background:var(--acc);color:#072652}.g{background:var(--soft);color:var(--tx);border:1px solid var(--bd)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--bd);font-size:.85rem;flex-wrap:wrap}
+.row small{color:var(--mut);display:block}.acts{display:flex;gap:6px}
+.tag{font-size:.72rem;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--soft)}.void{text-decoration:line-through;opacity:.6}
+</style>
+<script>try{var _t=JSON.parse(localStorage.getItem('theme'));document.documentElement.dataset.theme=_t||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}catch(e){}</script>
+</head>
+<body>
+<div class="top"><a class="brand" href="./"><img src="icon-192.png" alt="">Amana</a><div id="who"></div></div>
+<main id="m"></main>
+<script>
+const h=(t,p={},...k)=>{const e=Object.assign(document.createElement(t),p);k.flat().forEach(x=>e.append(x));return e};
+const fmt=n=>new Intl.NumberFormat('fr-FR').format(n)+' FCFA',$m=document.getElementById('m');
+let tok=JSON.parse(localStorage.getItem('amana_tok')||'null'),S=null;
+async function api(p,b){const r=await fetch('/api/v1/'+p,{method:b?'POST':'GET',headers:{'content-type':'application/json',authorization:'Bearer '+(tok||'')},body:b?JSON.stringify(b):undefined});
+  const d=await r.json().catch(()=>({}));if(!r.ok)throw d;return d}
+const ERR={invalid:'Téléphone ou mot de passe incorrect.',locked:'Trop d’essais : réessayez dans 15 minutes.',phone_taken:'Ce numéro est déjà utilisé.',bad_request:'Vérifiez les champs (mot de passe : 8 caractères minimum ; code PIN : 6 chiffres).',unauthorized:'Session expirée, reconnectez-vous.',not_valid:'Ce reçu est déjà signalé ou annulé.'};
+const say=e=>alert(ERR[e&&e.error]||'Erreur : '+((e&&e.error)||'réseau'));
+const REASON={amount:'Erreur de montant',duplicate:'Doublon',cancelled:'Client annulé',other:'Autre'};
+const field=(l,id,type='text',ph='')=>[h('label',{textContent:l}),h('input',{id,type,placeholder:ph})];
+const v=id=>document.getElementById(id).value.trim();
+const logout=()=>{tok=null;localStorage.removeItem('amana_tok');S=null;show()};
+
+function auth(){
+  $m.replaceChildren(
+    h('div',{className:'card'},h('h2',{textContent:'Connexion'}),...field('Téléphone','lp','tel','6XXXXXXXX'),...field('Mot de passe ou code PIN','lw','password'),
+      h('p',{style:'margin-top:12px'},h('button',{className:'btn',textContent:'Se connecter',onclick:async()=>{try{const d=await api('auth/login',{phone:v('lp'),password:document.getElementById('lw').value});save(d)}catch(e){say(e)}}}))),
+    h('div',{className:'card'},h('h2',{textContent:'Créer mon entreprise (propriétaire)'}),...field('Nom de l’entreprise','ro'),...field('Votre nom','rn'),...field('Téléphone','rp','tel','6XXXXXXXX'),...field('Mot de passe (8 caractères minimum)','rw','password'),...field('NIU / RCCM (facultatif)','ri'),
+      h('p',{style:'margin-top:12px'},h('button',{className:'btn o',textContent:'Créer mon espace',onclick:async()=>{try{const d=await api('auth/register',{org:v('ro'),name:v('rn'),phone:v('rp'),password:document.getElementById('rw').value,niu:v('ri')});save(d)}catch(e){say(e)}}}))))}
+function save(d){tok=d.token;localStorage.setItem('amana_tok',JSON.stringify(tok));show()}
+
+async function show(){
+  const gq=new URLSearchParams(location.search).get('google');
+  if(gq){history.replaceState(null,'','espace.html');setTimeout(()=>alert(gq==='ok'?'Google Drive connecté. Vos reçus seront copiés automatiquement.':'La connexion à Google a échoué. Réessayez.'),150)}
+  if(!tok){document.getElementById('who').replaceChildren();return auth()}
+  try{S=await api('me')}catch(e){tok=null;localStorage.removeItem('amana_tok');return auth()}
+  const own=S.user.role==='owner';let adm=false;try{adm=(await api('admin/me')).admin}catch(e){}
+  const sub=S.premium&&S.premium.active?`⭐ Premium jusqu’au ${new Date(S.premium.expires_at).toLocaleDateString('fr-FR')}`:(S.premium&&S.premium.expires_at?`Premium expiré le ${new Date(S.premium.expires_at).toLocaleDateString('fr-FR')}`:'Offre gratuite');
+  document.getElementById('who').replaceChildren(h('span',{textContent:`${S.user.name} · ${own?'Propriétaire':'Employé'}  `,style:'font-size:.85rem'}),h('button',{className:'btn g',textContent:'Déconnexion',onclick:logout}));
+  const cards=[h('div',{className:'card'},h('b',{textContent:S.org.name}),h('span',{textContent:'  '+sub,style:'font-size:.8rem;color:var(--mut)'}),h('p',{style:'margin:10px 0'},h('a',{className:'btn o',href:'app.html',textContent:'➕ Créer un reçu'}),...(own?[' ',h('a',{className:'btn g',href:'tableau.html',textContent:'📊 Tableau de bord'})]:[]),...(adm?[' ',h('a',{className:'btn g',href:'admin.html',textContent:'👑 Administration Amana'})]:[])))];
+  if(own){cards.push(await flagsCard(),await empCard(),shopsCard(),await googleCard())}
+  cards.push(await rcCard(own));$m.replaceChildren(...cards)}
+
+async function googleCard(){
+  const g=await api('google/status'),c=h('div',{className:'card'},h('h2',{textContent:'Copie automatique vers Google Drive et Sheets'})),p=t=>h('p',{textContent:t,style:'font-size:.85rem;color:var(--mut);margin:6px 0'});
+  if(!g.configured){c.append(p('Non configuré sur le serveur : les clés Google sont manquantes.'));return c}
+  const connect=h('button',{className:g.connected?'btn g':'btn o',textContent:g.connected?'Reconnecter Google':'Connecter mon Google Drive',onclick:async()=>{try{location.href=(await api('google/start')).url}catch(e){say(e)}}});
+  if(!g.connected){c.append(p('Chaque reçu (image) sera rangé dans votre Drive, et chaque vente ajoutée à un Google Sheets qui vous appartient.'),h('p',{},connect));return c}
+  c.append(p(`Compte Google : ${g.email}${g.status==='revoked'?' — accès retiré, reconnectez-vous.':''}`),
+    h('p',{},h('a',{className:'btn g',href:g.sheet_url,target:'_blank',rel:'noopener',textContent:'Ouvrir le Sheets'}),' ',h('a',{className:'btn g',href:g.folder_url,target:'_blank',rel:'noopener',textContent:'Ouvrir le dossier Drive'})),
+    p(g.pending?`${g.pending} envoi(s) en attente${g.errors?`, dont ${g.errors} en erreur (nouvelle tentative automatique)`:''}.`:'Tout est à jour.'),
+    h('p',{},h('button',{className:'btn',textContent:'Synchroniser maintenant',onclick:async()=>{try{await api('google/sync',{});show()}catch(e){say(e)}}}),' ',connect,' ',
+      h('button',{className:'btn g',textContent:'Déconnecter',onclick:async()=>{if(confirm('Déconnecter Google ? Les fichiers déjà créés restent dans votre Drive.'))try{await api('google/disconnect',{});show()}catch(e){say(e)}}})));
+  return c}
+
+async function flagsCard(){const f=await api('flags'),c=h('div',{className:'card'},h('h2',{textContent:`Signalements à traiter (${f.length})`}));
+  if(!f.length)c.append(h('p',{textContent:'Aucun signalement.',style:'color:var(--mut);font-size:.85rem'}));
+  f.forEach(x=>c.append(h('div',{className:'row'},h('div',{},h('b',{textContent:`${x.number} · ${fmt(x.total)}`}),h('small',{textContent:`${x.seller} : ${REASON[x.reason]}${x.comment?' — '+x.comment:''}`})),
+    h('div',{className:'acts'},h('button',{className:'btn o',textContent:'Annuler le reçu',onclick:()=>decide(x.id,'void')}),h('button',{className:'btn g',textContent:'Rejeter',onclick:()=>decide(x.id,'reject')})))));return c}
+async function decide(id,d){if(d==='void'&&!confirm('Annuler ce reçu ? Il restera visible, barré, dans l’historique.'))return;try{await api(`flags/${id}/decide`,{decision:d});show()}catch(e){say(e)}}
+
+async function empCard(){const e=await api('employees'),c=h('div',{className:'card'},h('h2',{textContent:'Employés'}));
+  e.forEach(x=>c.append(h('div',{className:'row'},h('div',{},h('b',{textContent:x.name}),h('small',{textContent:`${x.phone} · ${(S.shops.find(s=>s.id===x.shop_id)||{}).name||''}`})),
+    h('div',{className:'acts'},h('span',{className:'tag',textContent:x.active?'Actif':'Désactivé'}),
+      h('button',{className:'btn g',textContent:x.active?'Désactiver':'Réactiver',onclick:async()=>{try{await api(`employees/${x.id}/active`,{active:!x.active});show()}catch(z){say(z)}}}),
+      h('button',{className:'btn g',textContent:'Nouveau PIN',onclick:async()=>{const p=prompt('Nouveau code PIN (6 chiffres)');if(p)try{await api(`employees/${x.id}/reset`,{pin:p});alert('PIN modifié.')}catch(z){say(z)}}})))));
+  const sel=h('select',{id:'es'},S.shops.map(s=>h('option',{value:s.id,textContent:s.name})));
+  c.append(h('h2',{textContent:'Ajouter un employé',style:'margin-top:16px'}),...field('Nom','en'),...field('Téléphone','ep','tel','6XXXXXXXX'),...field('Code PIN (6 chiffres)','epin','text'),h('label',{textContent:'Boutique'}),sel,
+    h('p',{style:'margin-top:12px'},h('button',{className:'btn',textContent:'Créer le compte',onclick:async()=>{try{await api('employees',{name:v('en'),phone:v('ep'),pin:v('epin'),shop_id:sel.value});show()}catch(z){say(z)}}})));return c}
+
+function shopsCard(){const c=h('div',{className:'card'},h('h2',{textContent:'Boutiques'}));
+  S.shops.forEach(s=>c.append(h('div',{className:'row'},h('div',{},h('b',{textContent:s.name}),h('small',{textContent:`${s.city||''} · préfixe des reçus : ${s.code}`})))));
+  c.append(...field('Nouvelle boutique','sn'),...field('Ville','sc'),h('p',{style:'margin-top:12px'},h('button',{className:'btn',textContent:'Ajouter la boutique',onclick:async()=>{try{await api('shops',{name:v('sn'),city:v('sc')});show()}catch(z){say(z)}}})));return c}
+
+async function rcCard(own){const r=await api('receipts?limit=100'),c=h('div',{className:'card'},h('h2',{textContent:own?'Derniers reçus':'Mes reçus'}));
+  if(!r.length)c.append(h('p',{textContent:'Aucun reçu pour le moment.',style:'color:var(--mut);font-size:.85rem'}));
+  r.forEach(x=>{const st=x.state==='void'?'✖ Annulé':x.state==='flagged'?'⚠ Signalé':'',acts=h('div',{className:'acts'});
+    if(st)acts.append(h('span',{className:'tag',textContent:st}));
+    if(x.state==='valid')acts.append(h('button',{className:'btn g',textContent:own?'Annuler':'Signaler',onclick:()=>own?voidRc(x.id):flag(x.id)}));
+    if(own&&x.state==='flagged')acts.append(h('button',{className:'btn g',textContent:'Annuler',onclick:()=>voidRc(x.id)}));
+    c.append(h('div',{className:'row'},h('div',{className:x.state==='void'?'void':''},h('b',{textContent:`${x.number} · ${fmt(x.total)}`}),h('small',{textContent:`${new Date(x.created_at).toLocaleString('fr-FR')} · ${x.seller} · ${x.client||'-'}`})),acts))});return c}
+async function flag(id){const n=prompt('Motif du signalement :\n1 = Erreur de montant\n2 = Doublon\n3 = Client annulé\n4 = Autre');const k=['amount','duplicate','cancelled','other'][+n-1];if(!k)return;
+  const cm=prompt('Commentaire (facultatif)')||'';try{await api(`receipts/${id}/flag`,{reason:k,comment:cm});show()}catch(e){say(e)}}
+async function voidRc(id){const why=prompt('Motif de l’annulation ?');if(why===null)return;try{await api(`receipts/${id}/void`,{reason:why});show()}catch(e){say(e)}}
+show();
+</script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#072652">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>Amana – Administration</title>
+<style>
+:root{color-scheme:light;--bg:#f1f4f9;--card:#fff;--tx:#0b2147;--mut:#586a88;--bd:#d6deea;--soft:#eaf0f9;--pri:#072652;--acc:#ff7d01}
+[data-theme=dark]{color-scheme:dark;--bg:#041532;--card:#0a2250;--tx:#ecf1fb;--mut:#9fb2d3;--bd:#1f3b70;--soft:#102b5d;--pri:#17397a}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma,sans-serif}
+body{background:var(--bg);color:var(--tx);padding:16px}
+.top,main{max-width:900px;margin:0 auto}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--tx);text-decoration:none}.brand img{width:36px;height:36px;border-radius:9px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:10px;margin-bottom:12px}.sum .card{margin:0}
+.sum small{display:block;color:var(--mut);font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px}.sum b{font-size:1.2rem;display:block;margin-top:3px}
+h2{font-size:.95rem;margin-bottom:8px;border-left:4px solid var(--acc);padding-left:8px}
+label{display:block;font-size:.72rem;font-weight:600;color:var(--mut);margin:8px 0 3px}
+input,select{width:100%;padding:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:6px;font-size:.88rem}
+.btn{border:1px solid var(--bd);border-radius:6px;padding:7px 11px;font-weight:700;cursor:pointer;background:var(--soft);color:var(--tx);font-size:.8rem;text-decoration:none;display:inline-block}
+.p{background:var(--pri);color:#fff;border-color:var(--pri)}.o{background:var(--acc);color:#072652;border-color:var(--acc)}
+.bar{display:grid;grid-template-columns:1fr 1.4fr auto;gap:8px;margin-bottom:12px;align-items:end}
+.hd{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:flex-start}
+.badge{font-size:.72rem;font-weight:700;padding:3px 8px;border-radius:10px}.k{background:#d9f2e3;color:#14602f}.r{background:#fbdcdc;color:#8a1f1f}.og{background:#ffe9cc;color:#8a4a00}.g{background:var(--soft);color:var(--mut)}
+.mut{color:var(--mut);font-size:.8rem;margin-top:4px;line-height:1.5}.acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.form{border-top:1px dashed var(--bd);margin-top:10px;padding-top:6px}.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hist div{font-size:.78rem;padding:5px 0;border-bottom:1px solid var(--bd)}
+.note{font-size:.76rem;color:var(--mut);line-height:1.5;margin-bottom:12px}
+</style>
+<script>try{var _t=JSON.parse(localStorage.getItem('theme'));document.documentElement.dataset.theme=_t||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}catch(e){}</script>
+</head>
+<body>
+<div class="top"><a class="brand" href="./"><img src="icon-192.png" alt="">Amana · Administration</a><a class="btn" href="espace.html">← Espace entreprise</a></div>
+<main id="m"><p class="mut">Chargement…</p></main>
+<script>
+const h=(t,p={},...k)=>{const e=Object.assign(document.createElement(t),p);k.flat().forEach(x=>e.append(x));return e};
+const $=id=>document.getElementById(id),nb=n=>new Intl.NumberFormat('fr-FR').format(n||0),fmt=n=>nb(n)+' FCFA',D=ms=>new Date(ms).toLocaleDateString('fr-FR');
+const tok=JSON.parse(localStorage.getItem('amana_tok')||'null');if(!tok)location.href='espace.html';
+async function api(p,b){const r=await fetch('/api/v1/'+p,{method:b?'POST':'GET',headers:{'content-type':'application/json',authorization:'Bearer '+tok},body:b?JSON.stringify(b):undefined});const d=await r.json().catch(()=>({}));if(!r.ok)throw d;return d}
+const MET={mtn:'MTN MoMo',om:'Orange Money',cash:'Espèces',bank:'Virement',free:'Offert'},ERR={bad_request:'Vérifiez la durée (1 à 12 mois) et le montant.',no_subscription:'Aucun abonnement actif à retirer.',locked:'Trop d’essais : réessayez dans 15 minutes.',forbidden:'Clé incorrecte.'};
+const say=e=>alert(ERR[e&&e.error]||'Erreur : '+((e&&e.error)||'réseau'));
+
+async function init(){try{const a=await api('admin/me');a.admin?skeleton():claim(a.claimable)}catch(e){location.href='espace.html'}}
+function claim(ok){$('m').replaceChildren(h('div',{className:'card'},h('h2',{textContent:'Activer le compte super administrateur'}),
+  ok?[h('p',{className:'mut',textContent:'Saisissez la clé secrète configurée sur le serveur (ADMIN_KEY). Seule cette clé donne accès à l’administration.'}),h('label',{textContent:'Clé secrète'}),h('input',{id:'key',type:'password'}),
+      h('p',{style:'margin-top:12px'},h('button',{className:'btn p',textContent:'Activer',onclick:async()=>{try{await api('admin/claim',{key:$('key').value});init()}catch(e){say(e)}}}))]
+    :h('p',{className:'mut',textContent:'Aucune clé ADMIN_KEY n’est configurée sur le serveur : ajoutez-la dans les secrets Cloudflare, puis rechargez cette page.'})))}
+
+function skeleton(){
+  $('m').replaceChildren(h('p',{className:'note',textContent:'Vérifiez chaque paiement dans votre application MTN MoMo / Orange Money avant d’attribuer un abonnement : Amana ne contrôle pas ces paiements, vous les enregistrez à la main.'}),
+    h('div',{className:'sum',id:'sum'}),
+    h('div',{className:'bar'},h('div',{},h('label',{textContent:'Afficher'}),h('select',{id:'f',onchange:list},[['','Toutes les entreprises'],['active','Premium actifs'],['expiring','Expirent sous 7 jours'],['expired','Premium expirés'],['free','Jamais abonnées (gratuit)']].map(([v,t])=>h('option',{value:v,textContent:t})))),
+      h('div',{},h('label',{textContent:'Rechercher (nom, propriétaire, téléphone)'}),h('input',{id:'q',oninput:()=>{clearTimeout(window._t);window._t=setTimeout(list,300)}})),h('button',{className:'btn',textContent:'Actualiser',onclick:list})),
+    h('div',{id:'out'}));list()}
+
+const badge=o=>o.status==='free'?['— Gratuit · jamais payé','g']:o.status==='expired'?[`⏰ Expiré le ${D(o.expires_at)}${o.paid_total?' · a déjà payé':' · n’a jamais payé'}`,'r']:
+  o.status==='expiring'?[`⚠ Expire dans ${o.days_left} j (${D(o.expires_at)})`,'og']:[o.paid_total?`✅ Premium payé · jusqu’au ${D(o.expires_at)}`:`🎁 Premium offert · jusqu’au ${D(o.expires_at)}`,'k'];
+const wa=o=>'https://wa.me/'+String(o.phone).replace(/\D/g,'')+'?text='+encodeURIComponent(o.status==='free'?`Bonjour ${o.owner}, merci d’utiliser Amana. Souhaitez-vous passer à Amana Premium ?`:`Bonjour ${o.owner}, votre abonnement Amana Premium ${o.status==='expired'?'a expiré':'arrive à échéance'} le ${D(o.expires_at)}. Souhaitez-vous le renouveler ?`);
+
+async function list(){
+  let d;try{d=await api(`admin/orgs?filter=${$('f').value}&q=${encodeURIComponent($('q').value)}`)}catch(e){return say(e)}
+  const S=d.summary,c=(l,v)=>h('div',{className:'card'},h('small',{textContent:l}),h('b',{textContent:v}));
+  $('sum').replaceChildren(c('Entreprises',nb(S.total)),c('Premium actifs',nb(S.active)),c('Expirent sous 7 j',nb(S.expiring)),c('Premium expirés',nb(S.expired)),c('Jamais abonnées',nb(S.free)),c('Encaissé ce mois',fmt(S.month_amount)),c('Encaissé au total',fmt(S.total_amount)));
+  $('out').replaceChildren(...(d.orgs.length?d.orgs.map(card):[h('p',{className:'mut',textContent:'Aucune entreprise ne correspond.'})]))}
+
+function card(o){
+  const [bt,bc]=badge(o),box=h('div',{className:'card'}),extra=h('div');
+  box.append(h('div',{className:'hd'},h('div',{},h('b',{textContent:o.name}),h('p',{className:'mut',textContent:`${o.owner} · ${o.phone}`})),h('span',{className:'badge '+bc,textContent:bt})),
+    h('p',{className:'mut',textContent:`${o.shops} boutique(s) · ${o.employees} employé(s) · ${o.receipts30} reçu(s) sur 30 jours · créée le ${D(o.created_at)}`}),
+    h('p',{className:'mut',textContent:o.grants_n?`Encaissé : ${fmt(o.paid_total)}${o.last_paid_at?` · dernier paiement le ${D(o.last_paid_at)}`:' · aucun paiement (abonnement offert)'}`:'Aucun paiement enregistré.'}),
+    h('div',{className:'acts'},h('button',{className:'btn o',textContent:'Attribuer Premium',onclick:()=>{extra.replaceChildren(grantForm(o))}}),
+      h('button',{className:'btn',textContent:'Historique',onclick:async()=>{if(extra.firstChild&&extra.firstChild.className==='form hist'){extra.replaceChildren();return}try{extra.replaceChildren(await hist(o))}catch(e){say(e)}}}),
+      h('a',{className:'btn',href:wa(o),target:'_blank',rel:'noopener',textContent:'WhatsApp'}),
+      ...(o.status==='free'||o.status==='expired'?[]:[h('button',{className:'btn',textContent:'Mettre fin',onclick:async()=>{if(confirm(`Mettre fin au Premium de « ${o.name} » maintenant ?`)){const n=prompt('Motif (facultatif)')||'';try{await api(`admin/orgs/${o.id}/revoke`,{note:n});list()}catch(e){say(e)}}}})])),extra);return box}
+
+function grantForm(o){
+  const f=h('div',{className:'form'}),mo=h('select',{},Array.from({length:12},(_,i)=>h('option',{value:i+1,textContent:i===11?'12 mois (1 an)':`${i+1} mois`,selected:i===2}))),
+    am=h('input',{type:'number',min:0,placeholder:'0 = offert'}),me=h('select',{},Object.entries(MET).map(([v,t])=>h('option',{value:v,textContent:t}))),rf=h('input',{placeholder:'ID de transaction (facultatif)'}),nt=h('input',{placeholder:'Note (facultatif)'});
+  f.append(h('div',{className:'g2'},h('div',{},h('label',{textContent:'Durée'}),mo),h('div',{},h('label',{textContent:'Montant reçu (FCFA)'}),am)),
+    h('div',{className:'g2'},h('div',{},h('label',{textContent:'Mode de paiement'}),me),h('div',{},h('label',{textContent:'Référence'}),rf)),h('label',{textContent:'Note'}),nt,
+    h('p',{className:'mut',textContent:o.expires_at&&o.status!=='expired'?'La durée s’ajoute à la fin de l’abonnement en cours.':'L’abonnement démarre aujourd’hui.'}),
+    h('p',{style:'margin-top:8px'},h('button',{className:'btn p',textContent:'Attribuer',onclick:async()=>{
+      const m=+mo.value,a=+am.value||0;if(!confirm(`Attribuer ${m} mois de Premium à « ${o.name} » (${a?fmt(a):'offert'}) ?`))return;
+      try{const d=await api(`admin/orgs/${o.id}/grant`,{months:m,amount:a,method:me.value,ref:rf.value.trim(),note:nt.value.trim()});alert('Premium actif jusqu’au '+D(d.expires_at));list()}catch(e){say(e)}}})));return f}
+
+async function hist(o){const hs=await api(`admin/orgs/${o.id}/history`),b=h('div',{className:'form hist'});
+  if(!hs.length)b.append(h('div',{textContent:'Aucun historique.'}));
+  hs.forEach(x=>b.append(h('div',{textContent:x.kind==='revoke'?`${D(x.created_at)} · fin d’abonnement par ${x.admin}${x.note?' — '+x.note:''}`:`${D(x.created_at)} · +${x.months} mois · ${x.amount?fmt(x.amount):'offert'} · ${MET[x.method]||x.method}${x.ref?' · '+x.ref:''} · jusqu’au ${D(x.expires_at)} · par ${x.admin}${x.note?' — '+x.note:''}`})));return b}
+init();
+</script>
+</body>
+</html>
