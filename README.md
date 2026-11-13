@@ -37,4 +37,4 @@
 - Si une invitation échoue, vérifier SMTP et historique Auth. En cas de compte déjà créé pendant un incident d'envoi, le destinataire peut utiliser la récupération de mot de passe sur son e-mail lorsque le SMTP fonctionne. Ne pas supprimer des comptes pour « débloquer » sans vérifier leur entreprise et leurs données.
 - L'OCR nécessite encore un téléchargement tiers à la demande ; saisie manuelle disponible. Aucun paiement réel n'est vérifié par Amana.
 - Les anciens historiques locaux ne sont pas migrés automatiquement.
-- Avant exploitation : configurer SMTP, SMS si utilisés, CAPTCHA serveur, quotas et alertes de coût SMS ; tester isolation réelle, invitations, sauvegardes, rôles et mobile. Renouveler le mot de passe initial de base de données depuis Supabase et vérifier les conditions de votre forfait Vercel pour un usage commercial.
+- Avant exploitation : configurer SMTP, SMS si utilisés, CAPTCHA serveur, quotas et alertes de coût SMS ; tester isolation réelle, invitations, sauvegardes, rôles et mobile. Renouveler le mot de passe initial de base de données depuis Supabase et vérifier les conditions de votre forfait Vercel pour un usage commercia
