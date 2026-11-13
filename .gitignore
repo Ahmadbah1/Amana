@@ -1,0 +1,6 @@
+node_modules/
+public_site/
+.env
+.env.*
+!.env.example
+.vercel/
