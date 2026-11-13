@@ -1,0 +1,4 @@
+[functions.amana-employees]
+# Vérification réelle du jeton utilisateur dans index.ts via auth.getUser,
+# puis contrôle rôle gérant/statut actif. Ne pas retirer ces contrôles.
+verify_jwt = false
