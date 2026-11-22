@@ -1,0 +1,11 @@
+# Config Supabase minimale du projet (écriture manuelle : le dossier supabase/ existe déjà,
+# `supabase init` refuserait de l'écraser). project_id = le projet amana-prod (eu-central-1, free) lier par la CLI.
+project_id = "rggqvjrzjswxrtgsnzfo"
+
+[auth]
+enable_signup = true
+
+# La fonction staff attend un JWT utilisateur (vérifié ici à la porte),
+# puis fait son propre contrôle de rôle owner (voir supabase/functions/staff/index.ts).
+[functions.staff]
+verify_jwt = true
