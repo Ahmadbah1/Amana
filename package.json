@@ -1,0 +1,16 @@
+{
+  "name": "amana",
+  "version": "1.4.1",
+  "private": true,
+  "description": "Amana — application SaaS de reçus de paiement (PWA) avec stock gérant, dashboard analytique et politique mot de passe robuste",
+  "scripts": {
+    "test": "node tests/tests.mjs",
+    "test:smoke": "node tests/smoke.mjs",
+    "test:e2e": "node tests/e2e-owner.mjs",
+    "check:served": "node tests/check-served.mjs",
+    "test:all": "npm test && npm run test:smoke && npm run test:e2e"
+  },
+  "devDependencies": {
+    "playwright": "^1.65.1"
+  }
+}

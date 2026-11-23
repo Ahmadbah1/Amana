@@ -24,6 +24,7 @@ create table members(
   role text not null check (role in ('owner','employee')),
   display_name text not null,
   active boolean not null default true,
+  skills text not null default '',
   created_at timestamptz not null default now(),
   unique(org_id,user_id));
 create index on members(user_id);
@@ -67,6 +68,49 @@ create table audit_log(
 create index if not exists idx_receipt_items_receipt on receipt_items(receipt_id);
 create index if not exists idx_audit_log_org_created on audit_log(org_id,created_at desc);
 create index if not exists idx_receipts_tx_id on receipts(shop_id,tx_id) where tx_id is not null;
+
+-- ============================================================
+-- STOCK / INVENTAIRE (réservé au gérant)
+-- Produits (quantité, seuil, prix) + mouvements (ventes, annulations,
+-- ajustements manuels). Les reçus auto-décrémentent le stock ; une
+-- annulation le restaure (dans le même RPC — voir create/cancel_receipt).
+-- ============================================================
+create table if not exists products(
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references organizations on delete cascade,
+  shop_id uuid not null references shops on delete cascade,
+  name text not null,
+  unit text not null default 'u',
+  qty numeric(12,2) not null default 0,
+  min_qty numeric(12,2) not null default 0,
+  price_fcfa numeric(14,0) not null default 0,
+  created_by uuid references auth.users,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  check (char_length(name) between 1 and 200),
+  check (char_length(unit)<=30),
+  check (qty >= -1e12 and qty <= 1e15),
+  check (min_qty >= 0),
+  check (price_fcfa >= 0));
+create index if not exists idx_products_shop on products(shop_id);
+create unique index if not exists products_shop_name_norm on products(shop_id, lower(btrim(name)));
+
+create table if not exists stock_movements(
+  id bigserial primary key,
+  org_id uuid not null,
+  shop_id uuid not null references shops on delete cascade,
+  product_id uuid references products on delete set null,
+  product_name text not null,
+  delta numeric(12,2) not null check (delta <> 0),
+  reason text,
+  source text not null default 'manual' check (source in ('manual','receipt','receipt_cancel')),
+  ref_id uuid,
+  user_id uuid,
+  created_at timestamptz not null default now());
+create index if not exists idx_stock_movements_shop_created on stock_movements(shop_id, created_at desc);
+
+alter table products enable row level security;
+alter table stock_movements enable row level security;
 
 -- ---------- fonctions d'aide (security definer : pas de récursion RLS) ----------
 create function is_owner(p_org uuid) returns boolean language sql stable security definer set search_path=public as $$
@@ -112,6 +156,10 @@ create policy receipts_read on receipts for select using (
 create policy items_read on receipt_items for select using (exists(select 1 from receipts r where r.id=receipt_id));
 create policy audit_read on audit_log for select using (is_owner(org_id));
 
+-- stock / inventaire : gérant uniquement (jamais les employés, même avec droits)
+create policy products_own_read on products for select using (is_owner(org_id));
+create policy stock_movements_own_read on stock_movements for select using (is_owner(org_id));
+
 -- droits de table : lecture seule par défaut, écritures uniquement via les fonctions ci-dessous
 revoke all on all tables in schema public from anon;
 revoke insert,update,delete on all tables in schema public from authenticated;
@@ -137,9 +185,9 @@ begin
   return v_org;
 end $$;
 
-create function create_receipt(p_shop uuid,p_customer text,p_phone text,p_method text,p_tx text,p_status text,p_paid_at timestamptz,p_items jsonb)
+create or replace function create_receipt(p_shop uuid,p_customer text,p_phone text,p_method text,p_tx text,p_status text,p_paid_at timestamptz,p_items jsonb)
 returns receipts language plpgsql security definer set search_path=public as $$
-declare v_org uuid; v_no int; v_total numeric; r receipts;
+declare v_org uuid; v_no int; v_total numeric; r receipts; v_i jsonb; v_p products;
 begin
   if auth.uid() is null then raise exception 'auth_required'; end if;
   if not has_perm(p_shop,'create_receipt') then raise exception 'forbidden'; end if;
@@ -171,11 +219,24 @@ begin
     select r.id,trim(i->>'label'),(i->>'qty')::numeric,(i->>'price')::numeric from jsonb_array_elements(p_items) i;
   insert into audit_log(org_id,shop_id,user_id,action,entity_id,details)
     values (v_org,p_shop,auth.uid(),'receipt.create',r.id,jsonb_build_object('number',v_no,'total',v_total));
+  -- Synchronisation du stock : décrémente les produits dont le nom correspond à un article
+  for v_i in select * from jsonb_array_elements(p_items) loop
+    select * into v_p from products
+      where shop_id=p_shop
+        and regexp_replace(lower(btrim(name)),'[^0-9a-z]+','','g')
+            = regexp_replace(lower(btrim(v_i->>'label')),'[^0-9a-z]+','','g')
+      limit 1;
+    if v_p.id is not null then
+      update products set qty=qty-(v_i->>'qty')::numeric, updated_at=now() where id=v_p.id;
+      insert into stock_movements(org_id,shop_id,product_id,product_name,delta,reason,source,ref_id,user_id)
+        values (v_org,p_shop,v_p.id,v_p.name,-(v_i->>'qty')::numeric,'vente REC-'||lpad(v_no::text,4,'0'),'receipt',r.id,auth.uid());
+    end if;
+  end loop;
   return r;
 end $$;
 
-create function cancel_receipt(p_id uuid,p_reason text) returns void language plpgsql security definer set search_path=public as $$
-declare r receipts;
+create or replace function cancel_receipt(p_id uuid,p_reason text) returns void language plpgsql security definer set search_path=public as $$
+declare r receipts; v_i record; v_p products;
 begin
   select * into r from receipts where id=p_id;
   if not found or not has_perm(r.shop_id,'cancel_receipt') then raise exception 'forbidden'; end if;
@@ -185,6 +246,19 @@ begin
   update receipts set canceled_at=now(),canceled_by=auth.uid(),cancel_reason=p_reason where id=p_id;
   insert into audit_log(org_id,shop_id,user_id,action,entity_id,details)
     values (r.org_id,r.shop_id,auth.uid(),'receipt.cancel',p_id,jsonb_build_object('reason',p_reason));
+  -- Restauration du stock : réajout des quantités des articles du reçu
+  for v_i in select label,qty from receipt_items where receipt_id=r.id loop
+    select * into v_p from products
+      where shop_id=r.shop_id
+        and regexp_replace(lower(btrim(name)),'[^0-9a-z]+','','g')
+            = regexp_replace(lower(btrim(v_i.label)),'[^0-9a-z]+','','g')
+      limit 1;
+    if v_p.id is not null then
+      update products set qty=qty+v_i.qty, updated_at=now() where id=v_p.id;
+      insert into stock_movements(org_id,shop_id,product_id,product_name,delta,reason,source,ref_id,user_id)
+        values (r.org_id,r.shop_id,v_p.id,v_p.name,v_i.qty,'annulation REC-'||lpad(r.number::text,4,'0'),'receipt_cancel',r.id,auth.uid());
+    end if;
+  end loop;
 end $$;
 
 -- p_perms = null : retire l'employé de la boutique
@@ -202,15 +276,141 @@ begin
     'create_receipt',coalesce((p_perms->>'create_receipt')::boolean,false),
     'view_scope',case when p_perms->>'view_scope'='all' then 'all' else 'own' end,
     'cancel_receipt',coalesce((p_perms->>'cancel_receipt')::boolean,false),
-    'edit_price',coalesce((p_perms->>'edit_price')::boolean,false),
     'export',coalesce((p_perms->>'export')::boolean,false),
-    'manage_stock',coalesce((p_perms->>'manage_stock')::boolean,false),
     'view_stats',coalesce((p_perms->>'view_stats')::boolean,false),
     'edit_shop',coalesce((p_perms->>'edit_shop')::boolean,false));
   insert into member_shops(member_id,shop_id,permissions) values (p_member,p_shop,v)
     on conflict(member_id,shop_id) do update set permissions=excluded.permissions;
   insert into audit_log(org_id,shop_id,user_id,action,entity_id,details)
     values (v_org,p_shop,auth.uid(),'permissions.set',p_member,v);
+end $$;
+
+-- ============================================================
+-- STOCK / INVENTAIRE — opérations réservées au gérant (RPC)
+-- ============================================================
+-- Crée un produit (quantité initiale). Le gérant seul (réservé au gérant).
+create or replace function create_product(p_shop uuid,p_name text,p_unit text,p_qty numeric,p_min_qty numeric,p_price numeric)
+returns products language plpgsql security definer set search_path=public as $$
+declare v_org uuid; v_name text; v_unit text; v_qty numeric(12,2); v_min numeric(12,2); v_price numeric(14,0); r products;
+begin
+  if auth.uid() is null then raise exception 'auth_required'; end if;
+  v_name := btrim(coalesce(p_name,''));
+  if char_length(v_name)=0 or char_length(v_name)>200 then raise exception 'invalid_name'; end if;
+  v_unit := left(btrim(coalesce(p_unit,'u')),30); if v_unit='' then v_unit := 'u'; end if;
+  v_qty := coalesce(p_qty,0); v_min := coalesce(p_min_qty,0); v_price := coalesce(p_price,0);
+  if v_qty is null or v_qty < 0 then raise exception 'invalid_qty'; end if;
+  if v_min is null or v_min < 0 then raise exception 'invalid_min_qty'; end if;
+  if v_price is null or v_price < 0 then raise exception 'invalid_price'; end if;
+  select s.org_id into v_org from shops s join members m on m.org_id=s.org_id
+    where s.id=p_shop and m.user_id=auth.uid() and m.active=true and m.role='owner';
+  if v_org is null then raise exception 'forbidden'; end if;
+  insert into products(org_id,shop_id,name,unit,qty,min_qty,price_fcfa,created_by)
+    values (v_org,p_shop,v_name,v_unit,v_qty,v_min,v_price,auth.uid()) returning * into r;
+  insert into stock_movements(org_id,shop_id,product_id,product_name,delta,reason,source,user_id)
+    values (v_org,p_shop,r.id,v_name,v_qty,'création du produit','manual',auth.uid());
+  insert into audit_log(org_id,shop_id,user_id,action,entity_id,details)
+    values (v_org,p_shop,auth.uid(),'stock.create',r.id,jsonb_build_object('name',v_name,'qty',v_qty));
+  return r;
+end $$;
+
+-- Modifie un produit (nom, unité, seuil, prix). La quantité reste inchangée.
+create or replace function update_product(p_id uuid,p_name text,p_unit text,p_min_qty numeric,p_price numeric)
+returns products language plpgsql security definer set search_path=public as $$
+declare cur products; v_org uuid; v_name text; v_unit text; v_min numeric(12,2); v_price numeric(14,0); r products;
+begin
+  if auth.uid() is null then raise exception 'auth_required'; end if;
+  select * into cur from products where id=p_id;
+  if cur is null then raise exception 'not_found'; end if;
+  select s.org_id into v_org from shops s join members m on m.org_id=s.org_id
+    where s.id=cur.shop_id and m.user_id=auth.uid() and m.active=true and m.role='owner';
+  if v_org is null then raise exception 'forbidden'; end if;
+  v_name := btrim(coalesce(p_name,cur.name));
+  if char_length(v_name)=0 or char_length(v_name)>200 then raise exception 'invalid_name'; end if;
+  v_unit := left(btrim(coalesce(p_unit,cur.unit)),30); if v_unit='' then v_unit := 'u'; end if;
+  v_min := coalesce(p_min_qty,cur.min_qty);
+  v_price := coalesce(p_price,cur.price_fcfa);
+  if v_min is null or v_min < 0 then raise exception 'invalid_min_qty'; end if;
+  if v_price is null or v_price < 0 then raise exception 'invalid_price'; end if;
+  update products set name=v_name,unit=v_unit,min_qty=v_min,price_fcfa=v_price,updated_at=now() where id=p_id returning * into r;
+  return r;
+end $$;
+
+-- Ajuste le stock d'un produit (p_delta négatif = sortie, positif = entrée).
+create or replace function adjust_stock(p_id uuid,p_delta numeric,p_reason text)
+returns products language plpgsql security definer set search_path=public as $$
+declare cur products; v_org uuid; v_delta numeric(12,2); v_reason text; r products;
+begin
+  if auth.uid() is null then raise exception 'auth_required'; end if;
+  select * into cur from products where id=p_id;
+  if cur is null then raise exception 'not_found'; end if;
+  select s.org_id into v_org from shops s join members m on m.org_id=s.org_id
+    where s.id=cur.shop_id and m.user_id=auth.uid() and m.active=true and m.role='owner';
+  if v_org is null then raise exception 'forbidden'; end if;
+  v_delta := coalesce(p_delta,0);
+  v_reason := left(btrim(coalesce(p_reason,'')),200);
+  if v_delta=0 then raise exception 'invalid_delta'; end if;
+  if abs(v_delta)>1e12 then raise exception 'invalid_delta'; end if;
+  update products set qty=qty+v_delta, updated_at=now() where id=p_id returning * into r;
+  insert into stock_movements(org_id,shop_id,product_id,product_name,delta,reason,source,user_id)
+    values (v_org,cur.shop_id,p_id,cur.name,v_delta,nullif(v_reason,''),'manual',auth.uid());
+  insert into audit_log(org_id,shop_id,user_id,action,entity_id,details)
+    values (v_org,cur.shop_id,auth.uid(),'stock.adjust',p_id,jsonb_build_object('name',cur.name,'delta',v_delta,'reason',v_reason));
+  return r;
+end $$;
+
+-- Supprime un produit (les mouvements sont conservés pour l'historique).
+create or replace function delete_product(p_id uuid) returns void language plpgsql security definer set search_path=public as $$
+declare cur products; v_org uuid;
+begin
+  if auth.uid() is null then raise exception 'auth_required'; end if;
+  select * into cur from products where id=p_id;
+  if cur is null then return; end if;
+  select s.org_id into v_org from shops s join members m on m.org_id=s.org_id
+    where s.id=cur.shop_id and m.user_id=auth.uid() and m.active=true and m.role='owner';
+  if v_org is null then raise exception 'forbidden'; end if;
+  insert into audit_log(org_id,shop_id,user_id,action,entity_id,details)
+    values (v_org,cur.shop_id,auth.uid(),'stock.delete',p_id,jsonb_build_object('name',cur.name));
+  delete from products where id=p_id;
+end $$;
+
+-- ============================================================
+-- COMPÉTENCES DES EMPLOYÉS — colonne members.skills + RPC
+-- « compétences » déclarées par le gérant (texte libre, séparé par des virgules)
+-- ============================================================
+-- (migration add_member_skills)
+alter table members add column if not exists skills text not null default '';
+
+-- Met à jour les compétences déclarées d'un membre (gérant uniquement).
+create or replace function update_member_skills(p_member uuid, p_skills text)
+returns members language plpgsql security definer set search_path=public as $$
+declare m members; v_skills text; v_ownership boolean;
+begin
+  if auth.uid() is null then raise exception 'auth_required'; end if;
+  select * into m from members where id=p_member;
+  if not found then raise exception 'not_found'; end if;
+  select exists(select 1 from members x where x.org_id=m.org_id and x.user_id=auth.uid() and x.active=true and x.role='owner') into v_ownership;
+  if not v_ownership then raise exception 'forbidden'; end if;
+  v_skills := left(btrim(coalesce(p_skills,'')),500);
+  update members set skills=v_skills where id=p_member returning * into m;
+  insert into audit_log(org_id,shop_id,user_id,action,entity_id,details)
+    values (m.org_id,null,auth.uid(),'member.skills',p_member,jsonb_build_object('name',m.display_name,'skills',v_skills));
+  return m;
+end $$;
+
+-- ============================================================
+-- JOURNAL DES CHANGEMENTS SELF-SERVICE (changement de mot de passe)
+-- ============================================================
+-- (migration add_auth_log)
+create or replace function log_auth_self_service(p_action text, p_member uuid)
+returns void language plpgsql security definer set search_path=public as $$
+declare v_user uuid := auth.uid(); v_org uuid;
+begin
+  if v_user is null then raise exception 'auth_required'; end if;
+  if p_action not in ('auth.password') then raise exception 'forbidden'; end if;
+  select m.org_id into v_org from members m where m.user_id=v_user and m.active=true and m.id=p_member limit 1;
+  if v_org is null then raise exception 'not_found'; end if;
+  insert into audit_log(org_id,user_id,action,entity_id,details)
+    values (v_org,v_user,p_action,p_member,jsonb_build_object('self_service',true));
 end $$;
 
 -- seuls les utilisateurs connectés peuvent appeler les fonctions
