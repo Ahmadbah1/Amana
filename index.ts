@@ -7,9 +7,10 @@ const cors = {'Access-Control-Allow-Origin':'https://amana-ahmad.vercel.app','Ac
 // Access-Control-Allow-Origin restreint au domaine réel de l'app (prod) — ne pas remettre '*' ici.
 const out = (o: unknown, s = 200) => new Response(JSON.stringify(o), {status: s, headers: cors});
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-// Politique de mot de passe : 12 caractères minimum, minuscule/majuscule/chiffre, et aucun mot de passe commun
-const COMMON_PASSWORDS = new Set(['111111','123123','123321','1234','12345','123456','1234567','12345678','123456789','1234567890','abc123','abc12345','admin','afghanistan','apple','argentina','asdfgh','australia','austria','autumn','banana','bangladesh','baseball','bear','berry','botswana','brazil','burundi','canada','changeme','cherry','chile','china','colombia','columbia','computer','current','daniel','denmark','diamond','dragon','dragon1','egypt','emerald','enchanted','ethiopia','football','fox','france','germany','ghana','golden','grape','greece','hello','honduras','hungary','iloveyou','india','indonesia','iran','iraq','ireland','ivory','jamaica','japan','jasmin','jordan','kenya','korea','lanka','lemon','letmein','lion','lisa','london','lucky','magical','malawi','malaysia','mango','master','mexico','michael','monkey','morocco','myname','mystery','mystic','nepal','new','nicaragua','nigeria','norway','onepiece','onyx','orange','pakistan','paraguay','paris','password','password1','password123','password2','password321','peach','perou','peru','philippines','poland','portugal','princess','qwerty','qwerty123','qwertyuiop','raven','rome','rwanda','scotland','senegal','september','shadow','shadow1','singapore','soccer','spain','spring','sri','starwars','sudan','summer','sunshine','superhero','superman','sweden','syria','taiwan','teamwork','thailand','tiger','tokyo','trustno1','tunisia','uganda','uruguay','venezuela','vietnam','welcome','whatever','winter','wizard','wolf','zealand','zimbabwe','zxcvbn']);
-const validPw = (p: string) => p.length >= 12 && /[a-z]/.test(p) && /[A-Z]/.test(p) && /\d/.test(p) && !COMMON_PASSWORDS.has(p.trim().toLowerCase());
+// Politique de mot de passe (employés) : 8 caractères minimum, minuscule/majuscule/chiffre — sans dictionnaire.
+// L'employé est limité au niveau des actions par la matrice de droits. La politique stricte (12+/min/maj/chiffre/dictionnaire)
+// s'applique au gérant (signup + changement self-service) — gérée par le frontend côté client, non par cette fonction.
+const validPw = (p: string) => p.length >= 8 && /[a-z]/.test(p) && /[A-Z]/.test(p) && /\d/.test(p);
 
 Deno.serve(async req => {
   if (req.method === 'OPTIONS') return new Response('ok', {headers: cors});

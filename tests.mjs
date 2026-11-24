@@ -166,18 +166,28 @@ check('frontend : barre de force (attachPwHint)', /const attachPwHint/.test(html
 check('frontend : signup gérant validé par la politique', /if\(signup&&!pwOk\(p\.value\)\)/.test(html2));
 check('frontend : lien « Mot de passe oublié ? » (reset via email)', /resetPasswordForEmail/.test(html2) && /Mot de passe oublié ?/.test(html2));
 check('frontend : création employé — champ mot de passe masqué (type=password)', /function addEmp\(\)[\s\S]*type:'password'/.test(html2));
-check('frontend : fiche employé — politique vérifiée avant envoi', /if\(!pwOk\(v\)\)/.test(html2));
+check('frontend : fiche employé — politique allégée vérifiée avant envoi', /if\(!empOk\(v\)\)/.test(html2));
+check('frontend : création employé — politique allégée vérifiée', /if\(!empOk\(p\.value\)\)/.test(html2));
 check('frontend : section Sécurité (mot de passe actuel re-vérifié)', /function securityCard\(\)[\s\S]*signInWithPassword[\s\S]*updateUser\(\{password/.test(html2));
-check('staff (serveur) : même politique (validPw)', /const validPw = \(p: string\) => p\.length >= 12[\s\S]*\/\[A-Z\]/.test(read('supabase/functions/staff/index.ts')));
+check('staff (serveur) : politique employé (8+, casse, chiffre, sans dictionnaire)', /const validPw = \(p: string\) => p\.length >= 8[\s\S]*\/\[A-Z\][\s\S]*\/\\d/.test(read('supabase/functions/staff/index.ts')) && !/COMMON_PASSWORDS/.test(read('supabase/functions/staff/index.ts')));
 check('staff (serveur) : envoi filtré (weak_password)', /weak_password/.test(read('supabase/functions/staff/index.ts')));
 
 /* ---------- 10r. Sécurité mots de passe (dictionnaire + journal auth) ---------- */
 check('frontend : dictionnaire de mots de passe communs', /const COMMON_PASSWORDS = new Set\(\[/.test(html2));
 check('frontend : pwOk refuse les mots communs', /pwOk[\s\S]*!COMMON_PASSWORDS\.has\(w\)/.test(html2));
-check('staff (serveur) : dictionnaire appliqué', /COMMON_PASSWORDS\.has/.test(read('supabase/functions/staff/index.ts')));
 check('schema.sql : RPC log_auth_self_service', /create or replace function log_auth_self_service/.test(sql));
 check('frontend : journal inclut auth.password', /'auth\.password':'a changé son mot de passe'/.test(html2));
 check('frontend : appel log_auth_self_service après changement self-service', /log_auth_self_service/.test(html2));
+
+/* ---------- 10r2. Politique allégée employé + Analytique permanent + validation article ---------- */
+check('frontend : politique employé (8+, sans dictionnaire)', /const EMP_MIN = 8/.test(html2) && /const empOk = /.test(html2));
+check('frontend : hint allégé pour les employés', /attachPwHint\(p,hint,'emp'\)/.test(html2) && /attachPwHint\(nu,hint\)/.test(html2));
+check('frontend : ERR map emp_password_policy', /emp_password_policy:'Mot de passe trop faible : 8 caractères minimum/.test(html2));
+check('frontend : validation locale article par article (reçu)', /Validation locale article par article/.test(html2) && /Article '\+\(i\+1\)/.test(html2));
+check('frontend : Analytique — cache permanent (lecture/écriture/invalidation)', /function analyticsCacheGet/.test(html2) && /function analyticsCacheSet/.test(html2) && /function invalidateAnalytics/.test(html2));
+check('frontend : Analytique — aucune limite 1500 (historique complet)', !/limit\(1500\)/.test(html2));
+check('frontend : Analytique — cache incrémental appliqué avant l’ouverture', /analyticsCacheGet\(\)/.test(html2));
+check('frontend : invalidation du cache après création/annulation/stock', /invalidateAnalytics\(\)/.test(html2) && /invalidateAnalytics\(\);await loadRecs/.test(html2));
 
 /* ---------- 11. Résultats ---------- */
 console.log('');
