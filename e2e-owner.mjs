@@ -238,6 +238,8 @@ try {
   check('OCR texte colé : prix renseigné (25000)', price === '25000');
   await page.keyboard.press('Escape'); // on referme si possible
   await page.keyboard.press('Enter'); // ne change rien
+  /* saisir une étiquette d'article (requise par la RPC) */
+  await page.locator('#shB .row3 input[placeholder="Article"]').first().fill('Test e2e');
   /* création réelle */
   const goBtn = page.locator('#shB button.btn').nth(-1);
   await goBtn.click();
