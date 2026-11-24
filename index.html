@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#072652"><title>Amana</title>
 <link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" sizes="512x512" href="./icon-512.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
+<link rel="apple-touch-startup-image" href="./icon-180.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
+<link rel="apple-touch-startup-image" href="./icon-180.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)">
+<link rel="apple-touch-startup-image" href="./icon-180.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)">
 <meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,7 +22,7 @@
 <script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>try{var _t=JSON.parse(localStorage.getItem('theme'));document.documentElement.dataset.theme=_t||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}catch(e){}</script>
 <style>
-:root{color-scheme:light;--bg:#f5f8fd;--card:#ffffff;--tx:#072652;--mut:#51648c;--bd:#d8e1ee;--soft:#e9eefc;--pri:#072652;--acc:#ff7d01;--acc-deep:#e06800;--ok:#2e7d32}
+:root{color-scheme:light;--bg:#f5f8fd;--card:#ffffff;--tx:#072652;--mut:#51648c;--bd:#d8e1ee;--soft:#e9eefc;--pri:#072652;--acc:#ff7d01;--acc-deep:#e06800;--ok:#2e7d32;--bottom-safe:24px}
 [data-theme=dark]{color-scheme:dark;--bg:#04132b;--card:#0c2b58;--tx:#eef3fb;--mut:#a8b9d6;--bd:#1c3a6e;--soft:#122752;--pri:#173a70;--acc:#ff8a2e;--acc-deep:#ff7d01;--ok:#4caf50}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--tx);overflow-x:hidden}
@@ -41,12 +46,12 @@ input:focus,select:focus{border-color:var(--acc)}
 header{position:sticky;top:0;z-index:10;background:var(--pri);color:#fff;display:flex;align-items:center;gap:10px;padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top))}
 header img{width:32px;border-radius:9px}header select{flex:1;background:#ffffff1f;color:#fff;border:none;padding:8px}header option{color:#000}
 header button{background:#ffffff1f;border:none;color:#fff;border-radius:10px;width:38px;height:38px;font-size:1.1rem}
-#view{max-width:720px;margin:0 auto;padding:14px 14px 130px}#view>*{animation:in .4s both}
+#view{max-width:720px;margin:0 auto;padding:14px 14px calc(160px + var(--bottom-safe))}#view>*{animation:in .4s both}
 @keyframes in{from{opacity:0;transform:translateY(10px)}}
-.tabs{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--bd);display:flex;justify-content:space-around;padding:6px 0 calc(6px + env(safe-area-inset-bottom));z-index:20}
+.tabs{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--bd);display:flex;justify-content:space-around;padding:6px 0 max(calc(6px + env(safe-area-inset-bottom)), var(--bottom-safe));z-index:20}
 .tabs button{background:none;border:none;color:var(--mut);font-size:.72rem;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 22px;transition:.2s}
 .tabs button.on{color:var(--acc);transform:translateY(-2px)}.tabs b{font-size:1.3rem}
-.fab{position:fixed;right:18px;bottom:calc(82px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;background:var(--acc);color:#072652;font-size:2rem;border:none;box-shadow:0 8px 24px #ff7d0170;z-index:21;transition:transform .2s}.fab:active{transform:scale(.9) rotate(90deg)}
+.fab{position:fixed;right:18px;bottom:max(calc(82px + env(safe-area-inset-bottom)), calc(100px + var(--bottom-safe)));width:60px;height:60px;border-radius:50%;background:var(--acc);color:#072652;font-size:2rem;border:none;box-shadow:0 8px 24px #ff7d0170;z-index:21;transition:transform .2s}.fab:active{transform:scale(.9) rotate(90deg)}
 .kpis{display:grid;grid-template-columns:1.4fr 1fr;gap:10px;margin-bottom:12px}
 .kpi{background:linear-gradient(135deg,#072652,#0b4aa8);color:#fff;border-radius:16px;padding:14px}.kpi span{font-size:.75rem;opacity:.8;display:block}.kpi b{font-family:Georgia,serif;font-size:1.35rem}
 .srch{margin-bottom:10px}.chips{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto}
@@ -62,7 +67,7 @@ header button{background:#ffffff1f;border:none;color:#fff;border-radius:10px;wid
 #sheet .pn{position:absolute;left:0;right:0;bottom:0;max-width:720px;margin:0 auto;max-height:92vh;overflow:auto;background:var(--card);border-radius:22px 22px 0 0;padding:10px 16px calc(22px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
 #sheet.open{pointer-events:auto}#sheet.open .bg{opacity:1}#sheet.open .pn{transform:none}
 .grip{width:42px;height:5px;border-radius:3px;background:var(--bd);margin:0 auto 12px}#sheet h3{font-family:Georgia,serif;margin-bottom:12px}
-.pn .in{display:grid;gap:10px}.row3{display:grid;grid-template-columns:1fr auto 96px 34px;gap:6px;align-items:center}
+.pn .in{display:grid;gap:10px}.row3{display:grid;grid-template-columns:1fr auto 96px 34px;gap:6px;align-items:center}.row3.err{outline:2px solid var(--bad,#c62828);border-radius:12px;background:rgba(198,40,40,.08)}
 .step{display:flex;align-items:center;gap:6px}.step button,.x{width:30px;height:30px;border-radius:8px;border:none;background:var(--soft);color:var(--tx);font-weight:700}.step span{min-width:18px;text-align:center}
 .big{font-family:Georgia,serif;font-size:1.8rem;color:var(--acc);display:block;text-align:center}
 .paper{background:#fff;color:#0b2147;border-radius:6px;padding:16px;border-top:6px solid #072652;font-family:'Courier New',monospace;box-shadow:0 6px 20px #0003;margin-bottom:12px}
@@ -203,7 +208,7 @@ const fmt=n=>new Intl.NumberFormat('fr-FR').format(Math.round(+n||0))+' FCFA';
 const sameDay=(a,b=new Date())=>new Date(a).toDateString()===new Date(b).toDateString();
 const dt=d=>new Date(d).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
 const sw=f=>document.startViewTransition?document.startViewTransition(f):f();
-const ERR={forbidden:'Action non autorisée','Invalid login credentials':'Identifiants incorrects',items_required:'Ajoutez un article',reason_required:'Indiquez un motif',already_canceled:'Déjà annulé',invalid_item:'Article invalide : quantité ou prix manquant, négatif ou trop grand',invalid_method:'Mode de paiement invalide',invalid_status:'Statut de paiement invalide',too_many_items:'Trop d’articles (maximum 100)',invalid_customer:'Nom, téléphone ou référence trop longs',total_too_large:'Montant total trop élevé',shop_not_found:'Boutique introuvable',auth_required:'Session expirée, reconnectez-vous',already_member:'Ce compte est déjà rattaché à une entreprise',invalid_name:'Nom obligatoire (120 caractères maximum)',password_too_short:'Mot de passe : 12 caractères minimum',password_policy:'Mot de passe trop faible : 12 caractères minimum, minuscule, majuscule, chiffre et aucun mot de passe commun',weak_password:'Mot de passe trop faible : 12 caractères minimum, minuscule, majuscule, chiffre et aucun mot de passe commun',invalid_current:'Mot de passe actuel incorrect',password_mismatch:'Les deux mots de passe ne correspondent pas',server_misconfigured:'Fonction serveur mal configurée',unknown_action:'Action inconnue'};
+const ERR={forbidden:'Action non autorisée','Invalid login credentials':'Identifiants incorrects',items_required:'Ajoutez un article',reason_required:'Indiquez un motif',already_canceled:'Déjà annulé',invalid_item:'Article invalide : quantité ou prix manquant, négatif ou trop grand',invalid_method:'Mode de paiement invalide',invalid_status:'Statut de paiement invalide',too_many_items:'Trop d’articles (maximum 100)',invalid_customer:'Nom, téléphone ou référence trop longs',total_too_large:'Montant total trop élevé',shop_not_found:'Boutique introuvable',auth_required:'Session expirée, reconnectez-vous',already_member:'Ce compte est déjà rattaché à une entreprise',invalid_name:'Nom obligatoire (120 caractères maximum)',password_too_short:'Mot de passe : 12 caractères minimum',password_policy:'Mot de passe trop faible : 12 caractères minimum, minuscule, majuscule, chiffre et aucun mot de passe commun',weak_password:'Mot de passe trop faible — respectez la longueur et la complexité',emp_password_policy:'Mot de passe trop faible : 8 caractères minimum, minuscule, majuscule et chiffre',invalid_current:'Mot de passe actuel incorrect',password_mismatch:'Les deux mots de passe ne correspondent pas',server_misconfigured:'Fonction serveur mal configurée',unknown_action:'Action inconnue'};
 const err=e=>ERR[e&&e.message]||(e&&e.message)||'Erreur';
 function toast(m,t){const e=$('toast');e.textContent=m;e.className='show '+(t||'');clearTimeout(e._t);e._t=setTimeout(()=>e.className='',2800)}
 async function run(b,f){b.classList.add('ld');try{await f()}catch(e){toast(err(e),'err')}finally{b.classList.remove('ld')}}
@@ -234,9 +239,21 @@ const pwLabel = s => s <= 2 ? ['Faible','#c62828'] : s <= 4 ? ['Moyen','#e65100'
 const COMMON_PASSWORDS = new Set(['111111','123123','123321','1234','12345','123456','1234567','12345678','123456789','1234567890','abc123','abc12345','admin','afghanistan','apple','argentina','asdfgh','australia','austria','autumn','banana','bangladesh','baseball','bear','berry','botswana','brazil','burundi','canada','changeme','cherry','chile','china','colombia','columbia','computer','current','daniel','denmark','diamond','dragon','dragon1','egypt','emerald','enchanted','ethiopia','football','fox','france','germany','ghana','golden','grape','greece','hello','honduras','hungary','iloveyou','india','indonesia','iran','iraq','ireland','ivory','jamaica','japan','jasmin','jordan','kenya','korea','lanka','lemon','letmein','lion','lisa','london','lucky','magical','malawi','malaysia','mango','master','mexico','michael','monkey','morocco','myname','mystery','mystic','nepal','new','nicaragua','nigeria','norway','onepiece','onyx','orange','pakistan','paraguay','paris','password','password1','password123','password2','password321','peach','perou','peru','philippines','poland','portugal','princess','qwerty','qwerty123','qwertyuiop','raven','rome','rwanda','scotland','senegal','september','shadow','shadow1','singapore','soccer','spain','spring','sri','starwars','sudan','summer','sunshine','superhero','superman','sweden','syria','taiwan','teamwork','thailand','tiger','tokyo','trustno1','tunisia','uganda','uruguay','venezuela','vietnam','welcome','whatever','winter','wizard','wolf','zealand','zimbabwe','zxcvbn']);
 const pwOk = p => { const v = p || ''; const w = v.trim().toLowerCase();
   return v.length >= PW_MIN && /[a-z]/.test(v) && /[A-Z]/.test(v) && /\d/.test(v) && !COMMON_PASSWORDS.has(w) };
-const attachPwHint = (inp, hint) => { const upd = () => { const v = inp.value, s = pwScore(v), [lbl, col] = pwLabel(s);
-  hint.textContent = v ? (pwOk(v) ? '✔ Conforme — ' + lbl : '⚠ Insuffisant — ' + lbl + ', réessayez') : '12 caractères minimum · minuscule · majuscule · chiffre · sans mot de passe commun';
+// Politique allégée pour les employés (création + changement gérant) : 8 caractères min + casse + chiffre,
+// sans dictionnaire — l'employé est limité au niveau des actions par la matrice de droits.
+// La politique stricte (12+/min/maj/chiffre/dictionnaire) s'applique au gérant et au changement self-service.
+const EMP_MIN = 8;
+const empOk = p => { const v = p || '';
+  return v.length >= EMP_MIN && /[a-z]/.test(v) && /[A-Z]/.test(v) && /\d/.test(v) };
+const attachPwHint = (inp, hint, mode) => { const upd = () => { const v = inp.value, s = pwScore(v), [lbl, col] = pwLabel(s);
+  const ok = mode === 'emp' ? empOk(v) : pwOk(v);
+  const def = mode === 'emp' ? '8 caractères minimum · minuscule · majuscule · chiffre' : '12 caractères minimum · minuscule · majuscule · chiffre · sans mot de passe commun';
+  hint.textContent = v ? (ok ? '✔ Conforme — ' + lbl : '⚠ Insuffisant — ' + lbl + ', réessayez') : def;
   hint.style.color = v ? col : 'var(--mut)' }; inp.addEventListener('input', upd); upd() };
+
+// Normalise un numéro de téléphone camerounais au format E.164 (+2376XXXXXXXX)
+// Accepte : 6XXXXXXXX, 2376XXXXXXXX, +2376XXXXXXXX, +237 6XX XX XX XX, 6XX XX XX XX
+const normalizePh = v => { let n = String(v ?? '').replace(/\s|[-./]/g,''); if (!n.startsWith('+')) n = '+' + (n.startsWith('237') ? n.slice(3) : '237' + n); return n };
 
 function authView(){const b=$('authbox'),inp=(p,t='text')=>h('input',{type:t,placeholder:p}),
   seg=h('div',{className:'seg'},[['email','Gérant'],['phone','Téléphone'],['staff','Employé']].map(([k,l])=>h('button',{className:mode===k?'on':'',textContent:l,onclick:()=>{mode=k;otp=false;authView()}})));
@@ -248,14 +265,16 @@ function authView(){const b=$('authbox'),inp=(p,t='text')=>h('input',{type:t,pla
       const r=signup?await sb.auth.signUp({email:e.value,password:p.value}):await sb.auth.signInWithPassword({email:e.value,password:p.value});
       if(r.error)throw r.error;if(signup&&!r.data.session)toast('Compte créé : confirmez votre email puis connectez-vous','ok')}}
   else if(mode==='phone'){const t1=inp('Téléphone (+2376…)','tel'),c=inp('Code reçu par SMS');t1.value=ph;f=otp?[t1,c]:[t1];
-    go=async()=>{ph=t1.value;if(!otp){const r=await sb.auth.signInWithOtp({phone:ph});if(r.error)throw r.error;otp=true;authView();toast('Code envoyé par SMS','ok')}else{const r=await sb.auth.verifyOtp({phone:ph,token:c.value,type:'sms'});if(r.error)throw r.error}}}
+    go=async()=>{ph=normalizePh(t1.value);if(!otp){const r=signup?await sb.auth.signUp({phone:ph}):await sb.auth.signInWithOtp({phone:ph});if(r.error)throw r.error;otp=true;authView();toast(signup?'Code envoyé par SMS — saisissez le code':'Code envoyé par SMS','ok')}else{const r=await sb.auth.verifyOtp({phone:ph,token:c.value,type:'sms'});if(r.error)throw r.error}}}
   else{const u=inp('Identifiant'),p=inp('Mot de passe','password');f=[u,p];
     go=async()=>{const r=await sb.auth.signInWithPassword({email:u.value.trim().toLowerCase()+'@staff.amana.app',password:p.value});if(r.error)throw r.error}}
-  const btn=h('button',{className:'btn',textContent:mode==='email'&&signup?'Créer mon compte':mode==='phone'&&!otp?'Recevoir le code':'Se connecter'});btn.onclick=()=>run(btn,go);
+  const btn=h('button',{className:'btn',textContent:mode==='email'&&signup?'Créer mon compte':mode==='phone'&&signup&&!otp?'Créer mon compte':mode==='phone'&&!otp?'Recevoir le code':'Se connecter'});btn.onclick=()=>run(btn,go);
   let extra = h('div',{className:'lnkrow'});
   if(mode==='email'){extra=h('div',{className:'lnkrow'},
     h('a',{className:'lnk',textContent:signup?'J’ai déjà un compte':'Créer un compte gérant',onclick:()=>{signup=!signup;authView()}}),
     h('a',{className:'lnk',textContent:'Mot de passe oublié ?',onclick:async()=>{const v=e.value.trim();if(!v)return toast('Saisissez votre email d’abord','err');const {error}=await sb.auth.resetPasswordForEmail(v);if(error)return toast(err(error),'err');toast('Si un compte existe, un email de réinitialisation vient d’être envoyé','ok')}}))}
+  else if(mode==='phone'){extra=h('div',{className:'lnkrow'},
+    h('a',{className:'lnk',textContent:signup?'Se connecter':'Créer un compte',onclick:()=>{signup=!signup;authView()}}))}
   b.replaceChildren(h('img',{src:ICON,alt:''}),h('h1',{textContent:'Amana'}),seg,...f,btn,extra)}
 function onbView(){const a=h('input',{placeholder:'Nom de votre entreprise'}),n=h('input',{placeholder:'Votre nom'}),s=h('input',{placeholder:'Nom de votre première boutique'}),b=h('button',{className:'btn',textContent:'Créer mon espace'});
   b.onclick=()=>run(b,async()=>{await rpc('create_organization',{p_org_name:a.value,p_owner_name:n.value,p_shop_name:s.value});boot()});
@@ -395,16 +414,38 @@ const hbars=(node,rows)=>{
 };
 const analyticsEmptyNote=(t,d)=>h('p',{className:'sub',textContent:d});
 
+/* ---------- cache Analytique (permanent, rafraîchi après action) ---------- */
+const AN_KEY = () => 'amana:an:' + (S.me && S.me.id || 'u') + ':' + (S.shop && S.shop.id || 's');
+function analyticsCacheGet(){
+  if(!S.shop || !S.me) return null;
+  try{const c=JSON.parse(localStorage.getItem(AN_KEY())||'null');
+    if(c && c.shop_id===S.shop.id && Array.isArray(c.recs)) return c;
+  }catch(e){}
+  return null;
+}
+function analyticsCacheSet(payload){
+  try{localStorage.setItem(AN_KEY(), JSON.stringify({v:1, shop_id:S.shop && S.shop.id, at:new Date().toISOString(), ...payload}))}catch(e){}
+}
+function invalidateAnalytics(){
+  try{const shopId=S.shop&&S.shop.id;Object.keys(localStorage).filter(k=>k.startsWith('amana:an:') && (!shopId || k.split(':').pop()===String(shopId))).forEach(k=>localStorage.removeItem(k))}catch(e){}
+}
+
 async function analyticsView(){const v=$('view');v.replaceChildren(h('div',{className:'empty',textContent:'Chargement…'}));
   if(!S.shop)return v.replaceChildren(empty('📈','Aucune boutique','Le gérant ne vous a pas encore donné accès à une boutique.'));
-  const [recsRaw,memberRows,mpRows,products,movs]=await Promise.all([
-    sb.from('receipts').select('id,created_at,total,method,pay_status,canceled_at,created_by,number').eq('shop_id',S.shop.id).order('created_at',{ascending:false}).limit(1500),
-    sb.from('members').select('id,user_id,display_name,active,role,skills'),
-    sb.from('member_shops').select('member_id,shop_id,permissions'),
-    sb.from('products').select('*').eq('shop_id',S.shop.id),
-    sb.from('stock_movements').select('*').eq('shop_id',S.shop.id).order('created_at',{ascending:false}).limit(200)]);
-  const recs=(recsRaw.data||[]).slice().sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
-  const members=memberRows.data||[],mps=mpRows.data||[],prods=products.data||[],movements=movs.data||[];
+  // Cache permanent : une fois calculé il n'est pas recalculé à chaque ouverture (rafraîchi après toute action).
+  let data=analyticsCacheGet();
+  if(!data){
+    const [recsRaw,memberRows,mpRows,products,movs]=await Promise.all([
+      sb.from('receipts').select('id,created_at,total,method,pay_status,canceled_at,created_by,number').eq('shop_id',S.shop.id).order('created_at',{ascending:false}),
+      sb.from('members').select('id,user_id,display_name,active,role,skills'),
+      sb.from('member_shops').select('member_id,shop_id,permissions'),
+      sb.from('products').select('*').eq('shop_id',S.shop.id),
+      sb.from('stock_movements').select('*').eq('shop_id',S.shop.id).order('created_at',{ascending:false}).limit(400)]);
+    data={recs:recsRaw.data||[],members:memberRows.data||[],member_shops:mpRows.data||[],products:products.data||[],stock_movements:movs.data||[]};
+    analyticsCacheSet(data);
+  }
+  const recs=(data.recs||[]).slice().sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+  const members=data.members||[],mps=data.member_shops||[],prods=data.products||[],movements=data.stock_movements||[];
 
   const now=new Date(),startMonth=new Date(now.getFullYear(),now.getMonth(),1),startPrev=new Date(now.getFullYear(),now.getMonth()-1,1);
   const valid=recs.filter(r=>!r.canceled_at);
@@ -450,7 +491,7 @@ async function analyticsView(){const v=$('view');v.replaceChildren(h('div',{clas
   const srcVals={};monthMovements.forEach(mv=>{srcVals[mv.source]=(srcVals[mv.source]||0)+1});
   const srcBars=Object.keys(srcLabels).map(k=>({label:srcLabels[k],value:srcVals[k]||0})).filter(x=>x.value>0);
 
-  const hd=h('div',{className:'hd'},h('h2',{textContent:'Analytique'}),h('small',{className:'sub',textContent:'Vue gérant · recalculée à chaque ouverture'}));
+  const hd=h('div',{className:'hd'},h('h2',{textContent:'Analytique'}),h('small',{className:'sub',textContent:'Vue gérant · conservée en local (rafraîchie après chaque action)'}));
   const kpis=h('div',{className:'kpis'},
     anKpi('Ventes du jour',fmt(caToday),todayRecs.length+' reçu(s)'),
     anKpi('Ventes du mois',fmt(caMonth),growth>0||caPrev>0?('▲ '+Math.round(growth)+' % vs mois préc.'):'—','is-good'),
@@ -458,7 +499,7 @@ async function analyticsView(){const v=$('view');v.replaceChildren(h('div',{clas
     anKpi('Annulations (mois)',String(cancelMonth),monthRecs.length?Math.round(cancelMonth/(monthRecs.length+cancelMonth)*100)+' % des reçus':'—','is-bad'));
 
   /* ---- Ventes ---- */
-  const curveCard=h('div',{className:'an-card'},h('h3',{textContent:'Chiffre d’affaires — 30 derniers jours'}),h('span',{className:'sub2',textContent:'À partir des '+recs.length+' reçu(s) chargés (max 1500)'}),
+  const curveCard=h('div',{className:'an-card'},h('h3',{textContent:'Chiffre d’affaires — 30 derniers jours'}),h('span',{className:'sub2',textContent:'À partir des '+recs.length+' reçu(s) (historique complet)'}),
     h('div',{className:'an-curve',innerHTML:curveSvg(days)}));
   const statusCard=h('div',{className:'an-card'},h('h3',{textContent:'Statuts de paiement — mois'}),
     h('div',{className:'an-donut-wrap'},
@@ -520,7 +561,7 @@ async function analyticsView(){const v=$('view');v.replaceChildren(h('div',{clas
   srcCard.append(srcDiv);
   stockCard.append(srcCard);
 
-  const note=h('p',{className:'sub',style:'margin-top:12px;font-size:.72rem',textContent:'Basé sur les '+recs.length+' reçu(s) chargés (limite 1500) — les courbes ne couvrent pas l’historique complet. Les compétences déclarées sont saisies dans Équipe → employé.'});
+  const note=h('p',{className:'sub',style:'margin-top:12px;font-size:.72rem',textContent:'Basé sur les '+recs.length+' reçu(s) — l’historique complet, calculé une fois puis conservés (rafraîchis après chaque action). Les compétences déclarées sont saisies dans Équipe → employé.'});
   v.replaceChildren(hd,kpis,curveCard,statusCard,methodsCard,teamCard,perfCard,stockCard,note);
 }
 
@@ -569,16 +610,16 @@ async function stockView(){const v=$('view');v.replaceChildren(h('div',{classNam
   v.replaceChildren(v2,body)}
 function quickAdjust(p,d){run(h('button',{}),async()=>{await rpc('adjust_stock',{p_id:p.id,p_delta:d,p_reason:'ajustement rapide'});toast('Stock mis à jour ✔','ok');go('stock')})}
 function addProductSheet(){const n=h('input',{placeholder:'Nom du produit (ex. Coca-Cola 33cl)'}),u=h('input',{placeholder:'Unité (u, carton…)'}),q=h('input',{type:'number',inputMode:'numeric',min:'0',placeholder:'Quantité initiale',value:'0'}),m=h('input',{type:'number',inputMode:'numeric',min:'0',placeholder:'Seuil minimum',value:'1'}),pr=h('input',{type:'number',inputMode:'numeric',min:'0',placeholder:'Prix de vente (FCFA)',value:'0'}),b=h('button',{className:'btn',textContent:'Créer le produit'});
-  b.onclick=()=>run(b,async()=>{if(!n.value.trim())throw new Error('invalid_name');await rpc('create_product',{p_shop:S.shop.id,p_name:n.value,p_unit:u.value||'u',p_qty:+(q.value||0),p_min_qty:+(m.value||0),p_price:+(pr.value||0)});closeSheet();toast('Produit créé ✔','ok');go('stock')});
+  b.onclick=()=>run(b,async()=>{if(!n.value.trim())throw new Error('invalid_name');await rpc('create_product',{p_shop:S.shop.id,p_name:n.value,p_unit:u.value||'u',p_qty:+(q.value||0),p_min_qty:+(m.value||0),p_price:+(pr.value||0)});closeSheet();toast('Produit créé ✔','ok');invalidateAnalytics();go('stock')});
   openSheet('Nouveau produit',h('div',{className:'in'},h('p',{className:'sub',textContent:'Le produit sera débité automatiquement quand un reçu mentionnera son nom.'}),n,u,q,m,pr,b))}
 function editProductSheet(p){const n=h('input',{value:p.name,placeholder:'Nom'}),u=h('input',{value:p.unit,placeholder:'Unité'}),m=h('input',{type:'number',inputMode:'numeric',min:'0',value:p.min_qty,placeholder:'Seuil minimum'}),pr=h('input',{type:'number',inputMode:'numeric',min:'0',value:p.price_fcfa,placeholder:'Prix de vente (FCFA)'}),b=h('button',{className:'btn',textContent:'Enregistrer'}),c=h('button',{className:'btn g',textContent:'Annuler',onclick:closeSheet});
-  b.onclick=()=>run(b,async()=>{if(!n.value.trim())throw new Error('invalid_name');await rpc('update_product',{p_id:p.id,p_name:n.value,p_unit:u.value||'u',p_min_qty:+(m.value||0),p_price:+(pr.value||0)});closeSheet();toast('Produit enregistré ✔','ok');go('stock')});
+  b.onclick=()=>run(b,async()=>{if(!n.value.trim())throw new Error('invalid_name');await rpc('update_product',{p_id:p.id,p_name:n.value,p_unit:u.value||'u',p_min_qty:+(m.value||0),p_price:+(pr.value||0)});closeSheet();toast('Produit enregistré ✔','ok');invalidateAnalytics();go('stock')});
   openSheet('Modifier « '+p.name+' »',h('div',{className:'in'},h('p',{className:'sub',textContent:'La quantité n’est pas modifiée ici — utilisez les boutons +/−.'}),n,u,m,pr,h('div',{className:'row2'},b,c)))}
 function deleteProductSheet(p){const b=h('button',{className:'btn g',style:'color:#c62828;border-color:#c6282844',textContent:'Supprimer le produit'}),c=h('button',{className:'btn g',textContent:'Annuler',onclick:closeSheet});
-  b.onclick=()=>run(b,async()=>{await rpc('delete_product',{p_id:p.id});closeSheet();toast('Produit supprimé','ok');go('stock')});
+  b.onclick=()=>run(b,async()=>{await rpc('delete_product',{p_id:p.id});closeSheet();toast('Produit supprimé','ok');invalidateAnalytics();go('stock')});
   openSheet('Supprimer « '+p.name+' » ?',h('div',{className:'in'},h('p',{className:'sub',textContent:'Le produit sera supprimé. Les mouvements historiques sont conservés. Cette action est définitive.'}),h('div',{className:'row2'},b,c)))}
 function adjustSheet(p){const d=h('input',{type:'number',inputMode:'numeric',placeholder:'ex. +10 ou -3',value:'1'}),r=h('input',{placeholder:'Raison (facultatif)'}),b=h('button',{className:'btn',textContent:'Appliquer'}),c=h('button',{className:'btn g',textContent:'Annuler',onclick:closeSheet});
-  b.onclick=()=>run(b,async()=>{const v=+(d.value||0);if(!v)throw new Error('invalid_delta');await rpc('adjust_stock',{p_id:p.id,p_delta:v,p_reason:r.value||null});closeSheet();toast('Stock mis à jour ✔','ok');go('stock')});
+  b.onclick=()=>run(b,async()=>{const v=+(d.value||0);if(!v)throw new Error('invalid_delta');await rpc('adjust_stock',{p_id:p.id,p_delta:v,p_reason:r.value||null});closeSheet();toast('Stock mis à jour ✔','ok');invalidateAnalytics();go('stock')});
   openSheet('Ajuster « '+p.name+' »',h('div',{className:'in'},h('p',{className:'sub',textContent:'Quantité actuelle : '+p.qty+' '+p.unit}),d,r,h('div',{className:'row2'},b,c)))}
 
 const ln=(a,b)=>h('div',{className:'ln'},h('span',{textContent:a}),h('b',{textContent:b}));
@@ -593,7 +634,7 @@ async function detail(r,items){
   const txt=`*${S.shop.name}* – ${pad(r.number)}\n${dt(r.paid_at||r.created_at)}\n`+items.map(i=>`• ${i.qty} x ${i.label} : ${fmt(i.qty*i.price)}`).join('\n')+`\n💰 *TOTAL : ${fmt(r.total)}*\n${ST[r.pay_status]}`;
   const a=h('div',{className:'row2'},h('button',{className:'btn',style:'background:#25D366;color:#fff',textContent:'WhatsApp',onclick:()=>open('https://wa.me/?text='+encodeURIComponent(txt),'_blank','noopener,noreferrer')}),
     h('button',{className:'btn g',textContent:'Copier',onclick:()=>navigator.clipboard.writeText(txt).then(()=>toast('Copié','ok'))}));
-  const c=can('cancel_receipt')&&!r.canceled_at&&h('button',{className:'btn g',style:'margin-top:8px;color:#c62828',textContent:'Annuler ce reçu',onclick:async()=>{const m=prompt('Motif de l’annulation ?');if(!m)return;try{await rpc('cancel_receipt',{p_id:r.id,p_reason:m});closeSheet();toast('Reçu annulé','ok');loadRecs()}catch(e){toast(err(e),'err')}}});
+  const c=can('cancel_receipt')&&!r.canceled_at&&h('button',{className:'btn g',style:'margin-top:8px;color:#c62828',textContent:'Annuler ce reçu',onclick:async()=>{const m=prompt('Motif de l’annulation ?');if(!m)return;try{await rpc('cancel_receipt',{p_id:r.id,p_reason:m});closeSheet();toast('Reçu annulé','ok');invalidateAnalytics();loadRecs()}catch(e){toast(err(e),'err')}}});
   const pp=paper(r,items),x=h('div',{className:'row2',style:'margin-top:8px'},h('button',{className:'btn g',textContent:'🖼 Image',onclick:()=>shareImg(pp,r)}),h('button',{className:'btn g',textContent:'📄 PDF',onclick:()=>dlPdf(pp,r)}));
   let stockNoteEl=null;
   try{const {data:mov}=await sb.from('stock_movements').select('product_name,delta').eq('ref_id',r.id);
@@ -610,8 +651,31 @@ function newReceipt(){let mc;const st={items:[{label:'',qty:1,price:''}],method:
       h('button',{className:'x',textContent:'✕',onclick:()=>{st.items.length>1?st.items.splice(i,1):st.items[0]={label:'',qty:1,price:''};rows();calc()}}))}))};
   rows();calc();
   const go=h('button',{className:'btn',textContent:'Créer le reçu'});
-  go.onclick=()=>run(go,async()=>{const items=st.items.filter(i=>i.label||+i.price).map(i=>({label:i.label||'Paiement',qty:+i.qty||1,price:+i.price||0}));
-    if(!items.length)throw new Error('items_required');
+  go.onclick=()=>run(go,async()=>{
+    // Validation locale article par article — message précis avant l'envoi (la RPC reste la référence finale)
+    list.querySelectorAll('.row3.err').forEach(e=>e.classList.remove('err'));
+    const items=[],problems=[];
+    st.items.forEach((it,i)=>{
+      const label=String(it.label||'').trim();
+      const rawPrice=it.price,rawQty=it.qty;
+      const price=rawPrice===''||rawPrice==null?NaN:+rawPrice;
+      const qty=rawQty===''||rawQty==null?NaN:+rawQty;
+      if(!label&&!isFinite(price))return;   // ligne vierge non touchée → ignorée
+      const msgs=[];
+      if(!isFinite(qty)||qty<=0)msgs.push('quantité requise (≥ 1)');
+      else if(qty>9999)msgs.push('quantité trop grande');
+      if(!isFinite(price)||price<=0)msgs.push('prix requis (≥ 1)');
+      else if(price>9999999999)msgs.push('prix trop élevé');
+      if(isFinite(qty)&&isFinite(price)&&msgs.length===0){}   // ok
+      if(msgs.length){
+        problems.push('Article '+(i+1)+' : '+msgs.join(' ; '));
+        const rn=list.children&&list.children[i];if(rn)rn.classList.add('err');
+      } else {
+        items.push({label:label||'Paiement',qty,price});
+      }
+    });
+    if(!items.length&&!problems.length)throw new Error('items_required');
+    if(problems.length){toast('✗ '+problems.join(' · '),'err');const bad=list.querySelector('.row3.err');if(bad)bad.scrollIntoView({behavior:'smooth',block:'center'});return;}
     const r=await rpc('create_receipt',{p_shop:S.shop.id,p_customer:cu.value||null,p_phone:null,p_method:st.method,p_tx:tx.value||null,p_status:st.status,p_paid_at:st.date,p_items:items});
     let stockNote='';
     try{const {data:mov}=await sb.from('stock_movements').select('product_name,delta').eq('ref_id',r.id);
@@ -619,7 +683,7 @@ function newReceipt(){let mc;const st={items:[{label:'',qty:1,price:''}],method:
       else{const {data:ps}=await sb.from('products').select('name').eq('shop_id',S.shop.id).limit(1);
         if(ps&&ps.length)stockNote=' — Stock : 0 article(s) reconnu(s)'}
     }catch(e){}
-    toast('Reçu '+pad(r.number)+' créé ✔'+stockNote,'ok');await loadRecs();detail(r,items)});
+    toast('Reçu '+pad(r.number)+' créé ✔'+stockNote,'ok');invalidateAnalytics();await loadRecs();detail(r,items)});
   const stat=h('div',{className:'sub',style:'text-align:center'}),bar=h('div',{className:'prog',hidden:true},h('i')),barTxt=h('div',{className:'progTxt sub'}),file=h('input',{type:'file',accept:'image/*',hidden:true}),paste=h('textarea',{rows:3,placeholder:'Collez le texte du SMS ici — le plus fiable'});
   const apply=txt=>{const o=parseSms(txt),n=Object.keys(o).length;
     if(o.method){st.method=o.method;mc&&mc.refresh()}
@@ -649,8 +713,8 @@ async function staffView(){const v=$('view');v.replaceChildren(h('div',{classNam
     ...(S.emps.length?S.emps.map((m,i)=>{const n=S.mps.filter(x=>x.member_id===m.id).length,e=h('div',{className:'rc',onclick:()=>permsSheet(m)},h('div',{className:'av',textContent:m.display_name[0].toUpperCase()}),
       h('div',{className:'m'},h('b',{textContent:m.display_name}),h('small',{textContent:n+' boutique(s)'})),h('span',{className:'tag'+(m.active?'':' off'),textContent:m.active?'Actif':'Désactivé'}));e.style.animationDelay=i*40+'ms';return e}):[empty('👥','Aucun employé','Ajoutez un employé puis choisissez ce qu’il peut faire.')]))}
 function addEmp(){const n=h('input',{placeholder:'Nom complet'}),u=h('input',{placeholder:'Identifiant (ex. fatou)'}),p=h('input',{type:'password',placeholder:'Mot de passe',autocomplete:'new-password'}),hint=h('p',{className:'sub',style:'margin:0;font-size:.72rem'}),b=h('button',{className:'btn',textContent:'Créer le compte'});
-  attachPwHint(p,hint);
-  b.onclick=()=>run(b,async()=>{if(!pwOk(p.value))throw new Error('password_policy');const j=await fn({action:'create',display_name:n.value,username:u.value,password:p.value}),
+  attachPwHint(p,hint,'emp');
+  b.onclick=()=>run(b,async()=>{if(!empOk(p.value))throw new Error('emp_password_policy');const j=await fn({action:'create',display_name:n.value,username:u.value,password:p.value}),
     txt=`Amana – identifiant : ${j.login}\nMot de passe : ${p.value}`;
     openSheet('Compte créé ✔',h('div',{className:'in'},h('div',{className:'card',style:'white-space:pre-line;font-weight:600',textContent:txt}),h('p',{className:'sub',textContent:'Remettez ces informations à l’employé. Il se connecte via l’onglet « Employé ».'}),
       h('button',{className:'btn',textContent:'Copier',onclick:()=>navigator.clipboard.writeText(txt).then(()=>toast('Copié','ok'))})));staffView()});
@@ -667,8 +731,8 @@ function permsSheet(m){const box=h('div',{});
   box.append(h('div',{className:'row2'},h('button',{className:'btn g sm',textContent:m.active?'Désactiver':'Réactiver',onclick:async()=>{try{await fn({action:m.active?'disable':'enable',member_id:m.id});closeSheet();staffView()}catch(e){toast(err(e),'err')}}}),
     h('button',{className:'btn g sm',textContent:'Nouveau mot de passe',onclick:()=>{
       const p=h('input',{type:'password',placeholder:'Nouveau mot de passe',autocomplete:'new-password'}),hint=h('p',{className:'sub',style:'margin:0;font-size:.72rem'}),c=h('input',{type:'password',placeholder:'Confirmer le mot de passe',autocomplete:'new-password'}),b=h('button',{className:'btn',textContent:'Changer le mot de passe'});
-      attachPwHint(p,hint);
-      b.onclick=()=>run(b,async()=>{const v=p.value;if(!pwOk(v))throw new Error('password_policy');if(v!==c.value)throw new Error('password_mismatch');await fn({action:'password',member_id:m.id,password:v});closeSheet();toast('Mot de passe changé ✔ — l’employé devra se reconnecter','ok')});
+      attachPwHint(p,hint,'emp');
+      b.onclick=()=>run(b,async()=>{const v=p.value;if(!empOk(v))throw new Error('emp_password_policy');if(v!==c.value)throw new Error('password_mismatch');await fn({action:'password',member_id:m.id,password:v});closeSheet();toast('Mot de passe changé ✔ — l’employé devra se reconnecter','ok')});
       openSheet('Mot de passe de '+m.display_name,h('div',{className:'in'},h('p',{className:'sub',textContent:'L’employé devra utiliser ce mot de passe dès sa prochaine connexion. Transmettez-le-lui sur un canal de confiance.'}),p,hint,c,b))}})));
   S.shops.forEach(s=>{const cur=(S.mps.find(x=>x.member_id===m.id&&x.shop_id===s.id)||{}).permissions,st={on:!!cur,scope:!!cur&&cur.view_scope==='all',...Object.fromEntries(PERMS.map(([k])=>[k,!!(cur&&cur[k])]))};let tm;
     const save=()=>{clearTimeout(tm);tm=setTimeout(async()=>{const p=st.on?{view_scope:st.scope?'all':'own',...Object.fromEntries(PERMS.map(([k])=>[k,st[k]]))}:null;
@@ -698,6 +762,69 @@ function securityCard(){if(!S.user||!S.user.email)return null;   // les comptes 
   return h('div',{className:'card'},h('b',{textContent:'Sécurité'}),h('p',{className:'sub',textContent:'Changez votre mot de passe en cas de suspicion ou après un départ d’employé. Touchez le champ pour voir la force.'}),cur,nu,hint,cf,b)}
 
 /* ---------- réglages ---------- */
+// ---------- empreinte digitale (WebAuthn) ----------
+const b64uEnc = (bytes) => btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const b64uDec = (str) => { const s = str.replace(/-/g,'+').replace(/_/g,'/'); const padded = s + '='.repeat((4 - (s.length % 4)) % 4); return Uint8Array.from(atob(padded), c => c.charCodeAt(0)); };
+const strToBytes = (str) => Uint8Array.from(str, c => c.charCodeAt(0));
+
+async function webauthnHasCredential(){
+  const {data:{session}}=await sb.auth.getSession();
+  const rr=await fetch(SUPABASE_URL+'/functions/v1/webauthn',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token,apikey:SUPABASE_ANON},body:JSON.stringify({action:'authenticate/start'})}),r=await rr.json();
+  return !r.error && !!r.challenge;
+}
+
+async function webauthnRegister(){
+  const {data:{session}}=await sb.auth.getSession();
+  const rr=await fetch(SUPABASE_URL+'/functions/v1/webauthn',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token,apikey:SUPABASE_ANON},body:JSON.stringify({action:'register/start'})}),r=await rr.json();
+  if (r.error) return toast(err(r.error), 'err');
+  const cred = await navigator.credentials.create({
+    publicKey: {
+      challenge: b64uDec(r.challenge),
+      rp: { name: 'Amana', id: window.location.hostname },
+      user: { id: strToBytes(userIdForWebauthn()), name: r.user.name, displayName: r.user.name },
+      pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+      authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+      timeout: 60000,
+      attestation: 'direct',
+    },
+  });
+  if (!cred) return toast('Échec de l\'enregistrement de l\'empreinte', 'err');
+  const att = cred.response;
+  const rr2=await fetch(SUPABASE_URL+'/functions/v1/webauthn',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token,apikey:SUPABASE_ANON},body:JSON.stringify({action:'register/finish',
+    attestation_object: b64uEnc(new Uint8Array(att.attestationObject)),
+    client_data_json: b64uEnc(new Uint8Array(att.clientDataJSON)),
+    challenge: r.challenge,
+  })}),j2=await rr2.json();if(j2.error)return toast(err(j2.error),'err');
+  toast('Empreinte enregistrée ✔','ok');
+  setView();
+}
+
+async function webauthnAuthenticate(){
+  const {data:{session}}=await sb.auth.getSession();
+  const rr3=await fetch(SUPABASE_URL+'/functions/v1/webauthn',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token,apikey:SUPABASE_ANON},body:JSON.stringify({action:'authenticate/start'})}),r3=await rr3.json();
+  if (r.error) return toast(err(r.error), 'err');
+  const assertion = await navigator.credentials.get({
+    publicKey: {
+      challenge: b64uDec(r.challenge),
+      allowCredentials: [],
+      userVerification: 'required',
+      timeout: 60000,
+    },
+  });
+  if (!assertion) return toast('Échec de l\'authentification par empreinte', 'err');
+  const resp = assertion.response;
+  const rr4=await fetch(SUPABASE_URL+'/functions/v1/webauthn',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token,apikey:SUPABASE_ANON},body:JSON.stringify({action:'authenticate/finish',
+    credential_id: b64uEnc(assertion.rawId),
+    signature: b64uEnc(new Uint8Array(resp.signature)),
+    authenticator_data: b64uEnc(new Uint8Array(resp.authenticatorData)),
+    client_data_json: b64uEnc(new Uint8Array(resp.clientDataJSON)),
+    challenge: r.challenge,
+  })}),j4=await rr4.json();if(j4.error)return toast(err(j4.error),'err');
+  toast('Connexion par empreinte ✔','ok');
+}
+
+function userIdForWebauthn(){ return S.user ? S.user.id : ''; }
+
 function setView(){const v=$('view'),s=S.shop;v.replaceChildren(h('div',{className:'hd'},h('h2',{textContent:'Réglages'})));
   if(s&&can('edit_shop')){const f=['name','city','phone','tax_id','receipt_message'],L=['Nom de la boutique','Ville / adresse','Téléphone','NIU / RCCM','Message de fin de reçu'],I=f.map((k,i)=>h('input',{placeholder:L[i],value:s[k]||''})),lg=h('input',{type:'file',accept:'image/*',onchange:e=>logoUp(e.target.files[0])}),b=h('button',{className:'btn',textContent:'Enregistrer'});
     b.onclick=()=>run(b,async()=>{const u=Object.fromEntries(f.map((k,i)=>[k,I[i].value||null]));u.name=u.name||s.name;const r=await sb.from('shops').update(u).eq('id',s.id);if(r.error)throw r.error;Object.assign(s,u);shell();toast('Boutique enregistrée ✔','ok')});
@@ -705,10 +832,27 @@ function setView(){const v=$('view'),s=S.shop;v.replaceChildren(h('div',{classNa
   if(S.me.role==='owner')v.append(h('button',{className:'btn g',style:'margin-bottom:12px',textContent:'+ Nouvelle boutique',onclick:()=>{const n=h('input',{placeholder:'Nom de la boutique'}),b=h('button',{className:'btn',textContent:'Créer'});
     b.onclick=()=>run(b,async()=>{const r=await sb.from('shops').insert({org_id:S.me.org_id,name:n.value});if(r.error)throw r.error;closeSheet();toast('Boutique créée ✔','ok');await loadAll();shell();setView()});openSheet('Nouvelle boutique',h('div',{className:'in'},n,b))}}));
   const sc=securityCard();if(sc)v.append(sc);
+  (async()=>{
+    const hasCred = await webauthnHasCredential();
+    const section = h('div',{className:'card'},h('b',{textContent:'👆 Empreinte digitale (connexion sans mot de passe)'}),
+      h('p',{className:'sub',textContent:hasCred?'Une empreinte est enregistrée sur cet appareil.':'Aucune empreinte enregistrée. Enregistrez votre doigt/visage pour vous connecter sans mot de passe.'}),
+      h('div',{className:'row2'},
+        h('button',{className:'btn',id:'webauthnRegBtn',hidden:hasCred,textContent:'Enregistrer l\'empreinte',onclick:webauthnRegister}),
+        h('button',{className:'btn g',id:'webauthnDelBtn',hidden:!hasCred,textContent:'Supprimer l\'empreinte',onclick:async()=>{
+          if(!confirm('Supprimer l\'empreinte digitale de ce compte ?'))return;
+          const {error} = await sb.from('webauthn_credentials').delete().eq('user_id',S.user.id);
+          if(error)return toast(err(error),'err');
+          toast('Empreinte supprimée ✔','ok');
+          setView();
+        }}),
+      ));
+    v.append(section);
+  })();
   v.append(h('div',{className:'card'},h('b',{textContent:S.org.name||'Mon entreprise'}),h('p',{className:'sub',textContent:'Offre : '+(S.org.plan==='pro'?'Pro ⭐':'Gratuite')}),h('p',{className:'sub',textContent:S.me.display_name+' · '+(S.me.role==='owner'?'Gérant':'Employé')})),
     S.me.role==='owner'&&h('button',{className:'btn g',style:'margin-bottom:8px',textContent:'📋 Journal d’activité',onclick:journal}),
     h('button',{className:'btn g',style:'margin-bottom:8px',textContent:'❓ Aide, FAQ et CGU',onclick:help}),
-    h('button',{className:'btn g',textContent:'Se déconnecter',onclick:()=>sb.auth.signOut()}))}
+    h('button',{className:'btn g',textContent:'Se déconnecter',onclick:()=>sb.auth.signOut()}),
+    h('button',{className:'btn g',hidden:true,textContent:'⬇ Installer Amana',onclick:installPwa}))}
 
 /* ---------- image, PDF, QR ---------- */
 function qrEl(r){const q=h('div',{className:'qr'});try{new QRCode(q,{text:[pad(r.number),r.tx_id||'',r.total,S.shop.name].join('|'),width:72,height:72})}catch(e){}return q}
@@ -783,6 +927,12 @@ if(PLACEHOLDER)configView();
 else{clearTimeout(bt);bt=setTimeout(()=>boot().catch(fail),100);
 setInterval(()=>{if(!document.hidden&&S.shop&&!$('app').hidden)loadRecs()},30000)}   // filet de sécurité si le temps réel n'est pas activé
 
+// PWA install prompt (Android/Chrome) : propose d'installer l'app comme une appli native
+let installPrompt=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;try{$('installBtn').hidden=false}catch(_){}});
+async function installPwa(){if(!installPrompt)return toast('Installation non disponible sur cet appareil','err');installPrompt.prompt();const r=await installPrompt.userChoice;if(r.outcome==='accepted')toast('Amana installé ✔','ok');installPrompt=null;try{$('installBtn').hidden=true}catch(_){}};
+
 // Service Worker (PWA installable) : se met à jour en arrière-plan ; jamais bloquant
 if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./service-worker.js').catch(()=>{})})}
-</script></body></html>
+</script>
+<div id="installBtn" hidden><button class="btn g" onclick="installPwa()">⬇ Installer Amana</button></div>
+</body></html>

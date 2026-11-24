@@ -1,6 +1,6 @@
 {
   "name": "amana",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "private": true,
   "description": "Amana — application SaaS de reçus de paiement (PWA) avec stock gérant, dashboard analytique et politique mot de passe robuste",
   "scripts": {

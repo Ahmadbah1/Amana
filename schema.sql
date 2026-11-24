@@ -421,6 +421,39 @@ do $$ declare f record; begin
   end loop; end $$;
 
 -- ============================================================
+-- EMPREINTE DIGITALE (WebAuthn) — connexion biométique (Android / iOS)
+-- Stocke les clés publiques des appareils enregistrés par utilisateur.
+-- Les challenges sont générés et vérifiés par la fonction edge `webauthn`.
+-- ============================================================
+create table if not exists webauthn_credentials(
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users on delete cascade,
+  credential_id text unique not null,
+  public_key text not null,      -- clé publique COSE (base64url)
+  counter bigint default 0,
+  created_at timestamptz default now(),
+  unique(user_id, credential_id));
+create index if not exists idx_webauthn_user on webauthn_credentials(user_id);
+
+create table if not exists webauthn_challenges(
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users on delete cascade,
+  challenge text not null,
+  type text not null check (type in ('register','authenticate')),
+  expires_at timestamptz not null default now() + interval '5 minutes',
+  created_at timestamptz default now());
+create index if not exists idx_webauthn_challenges_user on webauthn_challenges(user_id, expires_at);
+
+alter table webauthn_credentials enable row level security;
+alter table webauthn_challenges enable row level security;
+
+create policy webauthn_creds_own on webauthn_credentials for all using (user_id=auth.uid()) with check (user_id=auth.uid());
+create policy webauthn_challenges_own on webauthn_challenges for all using (user_id=auth.uid() or user_id is null) with check (user_id=auth.uid() or user_id is null);
+
+grant select, insert, update, delete on webauthn_credentials to authenticated;
+grant select, insert, update, delete on webauthn_challenges to authenticated;
+
+-- ============================================================
 -- Étapes OBLIGATOIRES après ce script (SQL Editor Supabase) :
 --
 -- 1) Temps réel : activer la publication sur receipts, sinon les changements
@@ -436,4 +469,7 @@ do $$ declare f record; begin
 --
 -- 3) Déployer la fonction staff : supabase functions deploy staff
 --    (le fichier se trouve dans supabase/functions/staff/index.ts)
+--
+-- 4) Déployer la fonction webauthn : supabase functions deploy webauthn
+--    (le fichier se trouve dans supabase/functions/webauthn/index.ts)
 -- ============================================================
