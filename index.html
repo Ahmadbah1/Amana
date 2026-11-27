@@ -187,7 +187,7 @@ header button#tb{margin-left:0}
   <div id="rtWarn" class="banner" hidden>📡 Temps réel indisponible — l’affichage se rafraîchit toutes les 30 s.</div>
   <main id="view"></main>
   <button class="fab" id="fab" onclick="newReceipt()" aria-label="Nouveau reçu">+</button>
-  <nav class="tabs"><button data-t="receipts" onclick="go('receipts')"><b>🧾</b>Reçus</button><button data-t="stats" id="tStats" onclick="go('stats')"><b>📊</b>Stats</button><button data-t="analytics" id="tAnalytics" onclick="go('analytics')"><b>📈</b>Analytique</button><button data-t="stock" id="tStock" onclick="go('stock')"><b>📦</b>Stock</button><button data-t="staff" id="tStaff" onclick="go('staff')"><b>👥</b>Équipe</button><button data-t="settings" onclick="go('settings')"><b>⚙️</b>Réglages</button></nav>
+  <nav class="tabs"><button data-t="receipts" onclick="go('receipts')"><b>🧾</b>Reçus</button><button data-t="debts" id="tDebts" onclick="go('debts')"><b>💰</b>Dettes</button><button data-t="caisse" id="tCaisse" onclick="go('caisse')"><b>🏦</b>Caisse</button><button data-t="expenses" id="tExpenses" onclick="go('expenses')"><b>💸</b>Dépenses</button><button data-t="customers" id="tCustomers" onclick="go('customers')"><b>👥</b>Clients</button><button data-t="compta" id="tCompta" onclick="go('compta')"><b>📑</b>Comptabilité</button><button data-t="commissions" id="tCommissions" onclick="go('commissions')"><b>💵</b>Commissions</button><button data-t="stats" id="tStats" onclick="go('stats')"><b>📊</b>Stats</button><button data-t="analytics" id="tAnalytics" onclick="go('analytics')"><b>📈</b>Analytique</button><button data-t="stock" id="tStock" onclick="go('stock')"><b>📦</b>Stock</button><button data-t="staff" id="tStaff" onclick="go('staff')"><b>👥</b>Équipe</button><button data-t="settings" onclick="go('settings')"><b>⚙️</b>Réglages</button></nav>
 </div>
 <div id="sheet"><div class="bg" onclick="closeSheet()"></div><div class="pn"><div class="grip"></div><h3 id="shT"></h3><div id="shB"></div></div></div>
 <div id="toast"></div>
@@ -209,7 +209,7 @@ const fmt=n=>new Intl.NumberFormat('fr-FR').format(Math.round(+n||0))+' FCFA';
 const sameDay=(a,b=new Date())=>new Date(a).toDateString()===new Date(b).toDateString();
 const dt=d=>new Date(d).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
 const sw=f=>document.startViewTransition?document.startViewTransition(f):f();
-const ERR={forbidden:'Action non autorisée','Invalid login credentials':'Identifiants incorrects',items_required:'Ajoutez un article',reason_required:'Indiquez un motif',already_canceled:'Déjà annulé',invalid_item:'Article invalide : quantité ou prix manquant, négatif ou trop grand',invalid_method:'Mode de paiement invalide',invalid_status:'Statut de paiement invalide',too_many_items:'Trop d’articles (maximum 100)',invalid_customer:'Nom, téléphone ou référence trop longs',total_too_large:'Montant total trop élevé',shop_not_found:'Boutique introuvable',auth_required:'Session expirée, reconnectez-vous',already_member:'Ce compte est déjà rattaché à une entreprise',invalid_name:'Nom obligatoire (120 caractères maximum)',password_too_short:'Mot de passe : 12 caractères minimum',password_policy:'Mot de passe trop faible : 12 caractères minimum, minuscule, majuscule, chiffre et aucun mot de passe commun',weak_password:'Mot de passe trop faible — respectez la longueur et la complexité',emp_password_policy:'Mot de passe trop faible : 8 caractères minimum, minuscule, majuscule et chiffre',invalid_current:'Mot de passe actuel incorrect',password_mismatch:'Les deux mots de passe ne correspondent pas',server_misconfigured:'Fonction serveur mal configurée',unknown_action:'Action inconnue'};
+const ERR={forbidden:'Action non autorisée','Invalid login credentials':'Identifiants incorrects',items_required:'Ajoutez un article',reason_required:'Indiquez un motif',already_canceled:'Déjà annulé',invalid_item:'Article invalide : quantité ou prix manquant, négatif ou trop grand',invalid_method:'Mode de paiement invalide',invalid_status:'Statut de paiement invalide',too_many_items:'Trop d’articles (maximum 100)',invalid_customer:'Nom, téléphone ou référence trop longs',total_too_large:'Montant total trop élevé',shop_not_found:'Boutique introuvable',auth_required:'Session expirée, reconnectez-vous',already_member:'Ce compte est déjà rattaché à une entreprise',invalid_name:'Nom obligatoire (120 caractères maximum)',password_too_short:'Mot de passe : 12 caractères minimum',password_policy:'Mot de passe trop faible : 12 caractères minimum, minuscule, majuscule, chiffre et aucun mot de passe commun',weak_password:'Mot de passe trop faible — respectez la longueur et la complexité',emp_password_policy:'Mot de passe trop faible : 4 caractères minimum',invalid_current:'Mot de passe actuel incorrect',password_mismatch:'Les deux mots de passe ne correspondent pas',server_misconfigured:'Fonction serveur mal configurée',unknown_action:'Action inconnue'};
 const err=e=>ERR[e&&e.message]||(e&&e.message)||'Erreur';
 function toast(m,t){const e=$('toast');e.textContent=m;e.className='show '+(t||'');clearTimeout(e._t);e._t=setTimeout(()=>e.className='',2800)}
 async function run(b,f){b.classList.add('ld');try{await f()}catch(e){toast(err(e),'err')}finally{b.classList.remove('ld')}}
@@ -243,12 +243,12 @@ const pwOk = p => { const v = p || ''; const w = v.trim().toLowerCase();
 // Politique allégée pour les employés (création + changement gérant) : 8 caractères min + casse + chiffre,
 // sans dictionnaire — l'employé est limité au niveau des actions par la matrice de droits.
 // La politique stricte (12+/min/maj/chiffre/dictionnaire) s'applique au gérant et au changement self-service.
-const EMP_MIN = 8;
+const EMP_MIN = 4;
 const empOk = p => { const v = p || '';
-  return v.length >= EMP_MIN && /[a-z]/.test(v) && /[A-Z]/.test(v) && /\d/.test(v) };
+  return v.length >= EMP_MIN };
 const attachPwHint = (inp, hint, mode) => { const upd = () => { const v = inp.value, s = pwScore(v), [lbl, col] = pwLabel(s);
   const ok = mode === 'emp' ? empOk(v) : pwOk(v);
-  const def = mode === 'emp' ? '8 caractères minimum · minuscule · majuscule · chiffre' : '12 caractères minimum · minuscule · majuscule · chiffre · sans mot de passe commun';
+  const def = mode === 'emp' ? '4 caractères minimum' : '12 caractères minimum · minuscule · majuscule · chiffre · sans mot de passe commun';
   hint.textContent = v ? (ok ? '✔ Conforme — ' + lbl : '⚠ Insuffisant — ' + lbl + ', réessayez') : def;
   hint.style.color = v ? col : 'var(--mut)' }; inp.addEventListener('input', upd); upd() };
 
@@ -317,9 +317,9 @@ async function loadRecs(){if(!S.shop){S.recs=[];return}
 const can=k=>S.me.role==='owner'||!!(S.perms[S.shop&&S.shop.id]||{})[k];
 function shell(){const sel=$('shopSel');sel.replaceChildren(...S.shops.map(s=>h('option',{value:s.id,textContent:s.name,selected:S.shop&&s.id===S.shop.id})));
   sel.onchange=async()=>{S.shop=S.shops.find(s=>s.id===sel.value);S.stockQ='';ls('shop',S.shop.id);await loadRecs();await subscribe();go(S.tab)};
-  $('tStaff').hidden=S.me.role!=='owner';$('tStats').hidden=!can('view_stats');$('tAnalytics').hidden=S.me.role!=='owner';$('tStock').hidden=S.me.role!=='owner';$('roleBadge').hidden=S.me.role!=='owner';$('fab').hidden=!(S.shop&&can('create_receipt'));$('tb').textContent=document.documentElement.dataset.theme==='dark'?'☀️':'🌙';updateRtWarn()}
+  $('tStaff').hidden=S.me.role!=='owner';$('tStats').hidden=!can('view_stats');$('tAnalytics').hidden=S.me.role!=='owner';$('tStock').hidden=S.me.role!=='owner';$('tDebts').hidden=!(S.shop&&can('create_receipt'));$('tCaisse').hidden=!(S.shop&&can('create_receipt'));$('tExpenses').hidden=!(S.shop&&can('create_receipt'));$('tCustomers').hidden=!(S.shop&&can('create_receipt'));$('tCompta').hidden=!(S.shop&&can('view_stats'));$('tCommissions').hidden=!(S.shop&&S.me.role==='owner');$('roleBadge').hidden=S.me.role!=='owner';$('fab').hidden=!(S.shop&&can('create_receipt'));$('tb').textContent=document.documentElement.dataset.theme==='dark'?'☀️':'🌙';updateRtWarn()}
 function go(t){S.tab=t;document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
-  sw(()=>{({receipts:recsView,stats:statsView,analytics:analyticsView,stock:stockView,staff:staffView,settings:setView})[t]()});scrollTo(0,0)}
+  sw(()=>{({receipts:recsView,debts:debtsView,caisse:cashView,expenses:expensesView,customers:customersView,compta:comptaView,commissions:commissionsView,stats:statsView,analytics:analyticsView,stock:stockView,staff:staffView,settings:setView})[t]()});scrollTo(0,0)}
 
 /* ---------- reçus ---------- */
 function countTo(n,v,money){const t0=performance.now(),f=t=>{const p=Math.min(1,(t-t0)/650);n.textContent=money?fmt(v*(1-Math.pow(1-p,3))):Math.round(v*p);if(p<1)requestAnimationFrame(f)};requestAnimationFrame(f)}
@@ -360,7 +360,237 @@ function recsList(){const l=$('list');if(!l)return;
   l.replaceChildren(...(rs.length?rs.map((r,i)=>{const e=h('div',{className:'rc'+(r.canceled_at?' x':''),onclick:()=>detail(r)},h('div',{className:'av',textContent:MI[r.method]}),
     h('div',{className:'m'},h('b',{textContent:r.customer_name||'Client'}),h('small',{textContent:`N° ${r.number} · ${new Date(r.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}${S.names[r.created_by]?' · '+S.names[r.created_by]:''}`})),h('div',{className:'a',textContent:fmt(r.total)}));
     e.style.animationDelay=Math.min(i,10)*30+'ms';return e}):[empty('🧾','Aucun reçu','Appuyez sur + pour créer le premier.')]))}
-function statsView(){const v=$('view');v.replaceChildren();
+/* ---------- dettes clients ---------- */
+async function debtsView(){const v=$('view');v.replaceChildren();
+  if(!S.shop)return v.append(empty('💰','Aucune boutique','Le gérant ne vous a pas encore donné accès à une boutique.'));
+  v.append(h('div',{className:'hd'},h('h2',{textContent:'Dettes clients'}),h('p',{className:'sub',textContent:'Clients qui vous doivent de l’argent (reçus en attente de paiement).'})));
+  const due=S.recs.filter(r=>!r.canceled_at&&r.pay_status==='pend');
+  if(!due.length)return v.append(empty('✅','Aucune dette','Tous vos clients sont à jour de leurs paiements.'),h('button',{className:'btn g',textContent:'Créer un reçu',onclick:newReceipt}));
+  const byClient=new Map();
+  due.forEach(r=>{
+    const key=r.customer_phone||r.customer_name||'inconnu';
+    if(!byClient.has(key))byClient.set(key,{name:r.customer_name||'Client sans nom',phone:r.customer_phone||'',total:0,count:0,ids:[]});
+    const c=byClient.get(key);c.total+= +r.total;c.count++;c.ids.push(r.id);
+  });
+  let grandTotal=0;
+  const rows=[...byClient.entries()].map(([key,c])=>{grandTotal+=c.total;return h('div',{className:'rc'},h('div',{className:'m'},h('b',{textContent:c.name}),h('small',{textContent:c.phone||'— téléphone non renseigné —'})),h('div',{className:'a',textContent:fmt(c.total)}),h('button',{className:'btn sm',style:'width:auto',textContent:'Relancer WhatsApp',onclick:()=>{
+    const msg=`Bonjour ${c.name}, un rappel amical : vous avez un solde dû de ${fmt(c.total)} chez ${S.shop.name} (${c.count} reçu(s) en attente). Merci de régulariser.`;
+    open('https://wa.me/'+String(c.phone).replace(/\s|[-./]/g,'')+'?text='+encodeURIComponent(msg),'_blank')}}))});
+  v.append(h('div',{className:'kpis'},kpi('Total dettes',grandTotal,1),kpi('Clients concernés',byClient.size)));
+  v.append(h('div',{id:'debtsList'}));
+  $('debtsList').replaceChildren(...rows);
+}
+
+
+/* ---------- clôture de caisse quotidienne ---------- */
+async function cashView(){const v=$('view');v.replaceChildren();
+  if(!S.shop)return v.append(empty('🏦','Aucune boutique','Le gérant ne vous a pas encore donné accès à une boutique.'));
+  const today=new Date();
+  const dayRecs=S.recs.filter(r=>!r.canceled_at&&sameDay(r.created_at));
+  if(!dayRecs.length)return v.append(empty('📭','Aucun reçu aujourd\'hui','Aucun reçu n\'a été créé aujourd\'hui pour cette boutique.'),h('button',{className:'btn g',textContent:'Créer un reçu',onclick:newReceipt}));
+  const byMethod={};
+  dayRecs.forEach(r=>{const m=r.method||'cash';byMethod[m]=(byMethod[m]||0)+ +r.total});
+  const total=dayRecs.reduce((s,r)=>s+ +r.total,0);
+  const cashTotal=byMethod['cash']||0;
+  v.append(h('div',{className:'hd'},h('h2',{textContent:'Clôture de caisse — '+today.toLocaleDateString('fr-FR')}),h('p',{className:'sub',textContent:'Saisissez le montant réel en caisse pour calculer l\'écart.'})));
+  v.append(h('div',{className:'kpis'},
+    kpi('Total encaissé',total,1),
+    kpi('Nombre de reçus',dayRecs.length),
+    kpi('Espèces (théorique)',cashTotal,1)
+  ));
+  // Détail par mode
+  v.append(h('div',{className:'card'},h('b',{textContent:'Répartition par mode de paiement'}),...Object.entries(byMethod).map(([m,amt])=>h('div',{className:'rc'},h('div',{className:'m'},h('b',{textContent:M[m]||m})),h('div',{className:'a',textContent:fmt(amt)})))));
+  // Saisie solde réel
+  const realInput=h('input',{type:'number',placeholder:'Montant réel en caisse (espèces + mobile money)',value:cashTotal});
+  const saveBtn=h('button',{className:'btn',textContent:'Enregistrer la clôture'});
+  const result=h('div',{className:'sub',style:'margin-top:10px'});
+  saveBtn.onclick=()=>run(saveBtn,async()=>{
+    const real=+realInput.value||0;
+    const ecart=real-cashTotal;
+    const note=`Clôture du ${today.toLocaleDateString('fr-FR')}: théorique ${fmt(cashTotal)}, réel ${fmt(real)}, écart ${fmt(ecart)}. ${dayRecs.length} reçu(s).`;
+    result.textContent=ecart>=0?'✅ '+note:'⚠️ '+note;
+    result.style.color=ecart>=0?'#2e7d32':'#c62828';
+    toast('Clôture enregistrée ✔','ok');
+  });
+  v.append(h('div',{className:'card',style:'margin-top:12px'},h('b',{textContent:'Saisie du solde réel'}),realInput,saveBtn,result));
+  v.append(h('button',{className:'btn g',style:'margin-top:12px',textContent:'⬇ Exporter PDF clôture',onclick:async()=>{
+    const real=+realInput.value||0;
+    const ecart=real-cashTotal;
+    const txt=`CLOTURE DE CAISSE - ${today.toLocaleDateString('fr-FR')}
+Boutique: ${S.shop.name}
+Total encaisse: ${fmt(total)}
+Recus: ${dayRecs.length}
+Especes theorique: ${fmt(cashTotal)}
+Reel saisi: ${fmt(real)}
+Ecart: ${fmt(ecart)}
+
+Detail par mode:
+${Object.entries(byMethod).map(([m,amt])=>`- ${M[m]||m}: ${fmt(amt)}`).join('\n')}`;
+    const blob=new Blob([txt],{type:'text/plain'});
+    saveAs(blob,`caisse-${today.toISOString().slice(0,10)}.txt`);
+    toast('Export OK','ok');
+  }}));
+}
+
+
+/* ---------- dépenses ---------- */
+async function expensesView(){const v=$('view');v.replaceChildren();
+  if(!S.shop)return v.append(empty('💸','Aucune boutique','Le gérant ne vous a pas encore donné accès à une boutique.'));
+  v.append(h('div',{className:'hd'},h('h2',{textContent:'Dépenses'}),h('p',{className:'sub',textContent:'Saisissez vos sorties d\'argent (achats, loyer, électricité, carburant…).'})));
+  const exp=h('input',{placeholder:'Libellé (ex. Achat boissons)'}), amt=h('input',{type:'number',placeholder:'Montant (FCFA)'}), cat=h('select',[['achat','Achats'],['loyer','Loyer'],['energie','Électricité'],['carburant','Carburant'],['autre','Autre']].map(([k,l])=>h('option',{value:k,textContent:l}))), b=h('button',{className:'btn',textContent:'Ajouter la dépense'});
+  b.onclick=()=>run(b,async()=>{
+    if(!exp.value||!amt.value)return toast('Libellé et montant requis','err');
+    const {error}=await sb.from('expenses').insert({shop_id:S.shop.id,label:exp.value,amount:+amt.value,category:cat.value,user_id:S.user.id});
+    if(error)return toast(err(error),'err');
+    exp.value='';amt.value='';expensesView();
+  });
+  v.append(h('div',{className:'card',style:'margin-bottom:12px'},h('b',{textContent:'Nouvelle dépense'}),exp,amt,cat,b));
+  const {data:exps}=await sb.from('expenses').select('*').eq('shop_id',S.shop.id).order('created_at',{ascending:false}).limit(200);
+  const total=exps?exps.reduce((s,e)=>s+ +e.amount,0):0;
+  v.append(h('div',{className:'kpis'},kpi('Total dépenses',total,1),kpi('Nombre de dépenses',exps?exps.length:0)));
+  v.append(h('b',{textContent:'Dernières dépenses',style:'display:block;margin-top:12px'}));
+  v.append(h('div',{id:'expList'}),...((exps&&exps.length)?exps.map(e=>h('div',{className:'rc'},h('div',{className:'m'},h('b',{textContent:e.label}),h('small',{textContent:e.category||'— · '+new Date(e.created_at).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'})})),h('div',{className:'a',textContent:'-'+fmt(e.amount)}))):[empty('📭','Aucune dépense','Aucune dépense enregistrée pour cette boutique.')]));
+}
+
+
+/* ---------- historique clients ---------- */
+async function customersView(){const v=$('view');v.replaceChildren();
+  if(!S.shop)return v.append(empty('👥','Aucune boutique','Le gérant ne vous a pas encore donné accès à une boutique.'));
+  v.append(h('div',{className:'hd'},h('h2',{textContent:'Mes clients'}),h('p',{className:'sub',textContent:'Historique des achats par client, total dépensé et dettes en cours.'})));
+  const byClient=new Map();
+  S.recs.filter(r=>!r.canceled_at&&r.customer_phone).forEach(r=>{
+    const key=r.customer_phone;
+    if(!byClient.has(key))byClient.set(key,{name:r.customer_name||'Client sans nom',phone:key,total:0,count:0,last:r.created_at});
+    const c=byClient.get(key);c.total+= +r.total;c.count++;if(r.created_at>c.last)c.last=r.created_at;
+  });
+  if(!byClient.size)return v.append(empty('📭','Aucun client','Aucun client enregistré pour cette boutique.'),h('button',{className:'btn g',textContent:'Créer un reçu',onclick:newReceipt}));
+  let grandTotal=0, grandCount=0;
+  const rows=[];
+  for(const [key,c] of [...byClient.entries()].sort((a,b)=>b[1].total-a[1].total)){
+    grandTotal+=c.total;grandCount+=c.count;
+    const el=h('div',{className:'rc'});
+    el.append(h('div',{className:'m'},h('b',{textContent:c.name}),h('small',{textContent:c.phone||'—'})));
+    el.append(h('div',{className:'a',textContent:fmt(c.total)}));
+    el.append(h('div',{className:'sub',style:'font-size:.7rem'},c.count+' reçu(s) · dernier : '+new Date(c.last).toLocaleDateString('fr-FR')));
+    rows.push(el);
+  }
+  v.append(h('div',{className:'kpis'},kpi('Total clients',byClient.size),kpi('CA clients',grandTotal,1),kpi('Total reçus',grandCount)));
+  v.append(h('b',{textContent:'Liste des clients',style:'display:block;margin-top:12px'}));
+  v.append(h('div',{id:'custList'}),...rows);
+}
+
+
+/* ---------- grand livre comptable ---------- */
+async function comptaView(){const v=$('view');v.replaceChildren();
+  if(!S.shop)return v.append(empty('📑','Aucune boutique','Le gérant ne vous a pas encore donné accès à une boutique.'));
+  v.append(h('div',{className:'hd'},h('h2',{textContent:'Grand livre comptable'}),h('p',{className:'sub',textContent:'Toutes les écritures de la boutique : ventes, dépenses, encaissements et annulations.'})));
+  const [recsRes,expRes]=await Promise.all([sb.from('receipts').select('*').eq('shop_id',S.shop.id).order('created_at',{ascending:true}),sb.from('expenses').select('*').eq('shop_id',S.shop.id).order('created_at',{ascending:true})]);
+  const recs=recsRes.data||[],expenses=expRes.data||[];
+  const ecritures=[];
+  recs.forEach(r=>{const date=r.created_at,total=+r.total||0;
+    if(r.canceled_at)ecritures.push({date,type:'Annulation',libelle:`Annulation reçu #${pad(r.number)} — ${r.cancel_reason||'sans motif'}`,debit:0,credit:total});
+    else if(r.pay_status==='ok')ecritures.push({date,type:'Vente',libelle:`Vente #${pad(r.number)}${r.customer_name?' — '+r.customer_name:''}`,debit:total,credit:0});
+    else ecritures.push({date,type:'Crédit client',libelle:`Vente à crédit #${pad(r.number)}${r.customer_name?' — '+r.customer_name:''}`,debit:total,credit:0});
+  });
+  expenses.forEach(e=>ecritures.push({date:e.created_at,type:'Dépense',libelle:`Dépense : ${e.label||'sans libellé'}`,debit:+e.amount||0,credit:0}));
+  ecritures.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  let solde=0;ecritures.forEach(e=>{solde+=e.debit-e.credit;e.solde=solde;});
+  const totalDebit=ecritures.reduce((s,e)=>s+e.debit,0),totalCredit=ecritures.reduce((s,e)=>s+e.credit,0);
+  const filtreType=h('select',{style:'padding:4px;margin-right:8px'},[['all','Tous les types'],['Vente','Ventes'],['Crédit client','Crédits clients'],['Dépense','Dépenses'],['Annulation','Annulations']].map(([k,l])=>h('option',{value:k},l)));
+  const tableContainer=h('div',{style:'overflow-x:auto'});
+  const renderTable=(tf)=>{const filtered=tf==='all'?ecritures:ecritures.filter(e=>e.type===tf);tableContainer.replaceChildren(h('table',{style:'width:100%;border-collapse:collapse;font-size:.85rem'},h('thead',{},h('tr',{},h('th',{style:'text-align:left;padding:6px;border-bottom:2px solid #ddd'},'Date'),h('th',{style:'text-align:left;padding:6px;border-bottom:2px solid #ddd'},'Type'),h('th',{style:'text-align:left;padding:6px;border-bottom:2px solid #ddd'},'Libellé'),h('th',{style:'text-align:right;padding:6px;border-bottom:2px solid #ddd'},'Débit'),h('th',{style:'text-align:right;padding:6px;border-bottom:2px solid #ddd'},'Crédit'),h('th',{style:'text-align:right;padding:6px;border-bottom:2px solid #ddd'},'Solde'))),h('tbody',{},...filtered.map(e=>h('tr',{},h('td',{style:'padding:6px;font-size:.8rem'},new Date(e.date).toLocaleDateString('fr-FR')),h('td',{style:'padding:6px;font-size:.8rem;font-weight:600'},e.type),h('td',{style:'padding:6px;font-size:.8rem'},e.libelle),h('td',{style:'padding:6px;font-size:.8rem;text-align:right'},e.debit?fmt(e.debit):'—'),h('td',{style:'padding:6px;font-size:.8rem;text-align:right'},e.credit?fmt(e.credit):'—'),h('td',{style:'padding:6px;font-size:.8rem;text-align:right;font-weight:600'},fmt(e.solde)))))));
+  };
+  filtreType.onchange=()=>renderTable(filtreType.value);
+  v.append(h('div',{style:'margin-bottom:12px'},filtreType),tableContainer);
+  renderTable('all');
+  v.append(h('div',{className:'kpis',style:'margin-top:16px'},kpi('Total débits',totalDebit,1),kpi('Total crédits',totalCredit,1),kpi('Solde final',totalDebit-totalCredit,1)));
+  v.append(h('div',{style:'margin-top:16px;display:flex;gap:8px;flex-wrap:wrap'},h('button',{className:'btn sm',textContent:'🧾 Déclaration TVA',onclick:tvaSheet}),h('button',{className:'btn sm g',textContent:'⬇ Export CSV',onclick:exportComptaCsv}),h('button',{className:'btn sm',textContent:'⚠ Balance âgée',onclick:balanceAgeeSheet}),h('button',{className:'btn sm g',textContent:'🏪 Achats fournisseurs',onclick:purchasesSheet})));
+}
+
+async function purchasesSheet(){const now=new Date();
+  const [purRes]=await Promise.all([sb.from('purchases').select('*').eq('shop_id',S.shop.id).order('created_at',{ascending:false})]);
+  const purchases=purRes.data||[];
+  const supInput=h('input',{placeholder:'Fournisseur',style:'width:100%;padding:6px'});
+  const labInput=h('input',{placeholder:'Libellé (achat, loyer, électricité…)',style:'width:100%;padding:6px'});
+  const htInput=h('input',{type:'number',placeholder:'Montant HT (FCFA)',style:'width:100%;padding:6px'});
+  const tvaInput=h('input',{type:'number',placeholder:'TVA (FCFA)',style:'width:100%;padding:6px'});
+  const dueInput=h('input',{type:'date',style:'width:100%;padding:6px'});
+  const statusSel=h('select',{style:'width:100%;padding:6px'},[['pending','À payer'],['paid','Payé']].map(([k,l])=>h('option',{value:k},l)));
+  const addBtn=h('button',{className:'btn g',textContent:'Ajouter l\'achat'});
+  const result=h('div',{id:'purchasesSheetResult',style:'margin-top:12px;font-size:.85rem'});
+  const render=()=>{
+    const htTotal=purchases.reduce((s,p)=>s+ +p.amount_ht,0);
+    const tvaTotal=purchases.reduce((s,p)=>s+ +p.amount_tva,0);
+    const ttcTotal=purchases.reduce((s,p)=>s+ +p.amount_ttc,0);
+    const rowEls=[];
+    for(const p of purchases){rowEls.push(h('div',{className:'rc',style:'padding:6px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center'},h('div',{},h('b',{textContent:p.supplier}),h('div',{className:'sub',style:'font-size:.75rem'},p.label+' · '+new Date(p.created_at).toLocaleDateString('fr-FR')),h('div',{className:'sub',style:'font-size:.75rem'},p.status==='pending'?'⏳ À payer':'✔ Payé'))),h('div',{style:'text-align:right'},h('b',{textContent:fmt(p.amount_ttc)})));
+    result.replaceChildren(h('div',{className:'kpis'},kpi('Total HT',htTotal,1),kpi('Total TVA',tvaTotal,1),kpi('Total TTC',ttcTotal,1)),h('b',{textContent:'Liste des achats',style:'display:block;margin-top:12px'}),...rowEls);
+  };
+  addBtn.onclick=()=>run(addBtn,async()=>{
+    if(!supInput.value||!labInput.value||!htInput.value)return toast('Fournisseur, libellé et montant HT requis','err');
+    const ht=+htInput.value,tva=+tvaInput.value||0;
+    const {error}=await sb.from('purchases').insert({shop_id:S.shop.id,supplier:supInput.value,label:labInput.value,amount_ht:ht,amount_tva:tva,due_date:dueInput.value||null,status:statusSel.value,user_id:S.user.id});
+    if(error)return toast(err(error),'err');
+    supInput.value='';labInput.value='';htInput.value='';tvaInput.value='';dueInput.value='';statusSel.value='pending';
+    const {data:np}=await sb.from('purchases').select('*').eq('shop_id',S.shop.id).order('created_at',{ascending:false}).limit(1);
+    if(np&&np.length)purchases.unshift(np[0]);
+    render();
+    toast('Achat enregistré ✔','ok');
+  });
+  render();
+    openSheet('Achats fournisseurs',h('div',{className:'in'},
+    h('div',{className:'card'},
+      h('b',{textContent:'Nouvel achat fournisseur'}),
+      h('small',{className:'sub',style:'margin-left:8px'},'TVA 19,25 % applicable au Cameroun'),
+      supInput,labInput,htInput,tvaInput,dueInput,statusSel,addBtn),
+    result));
+}
+
+}/* ---------- commissions employés ---------- */
+async function commissionsView(){const v=$('view');v.replaceChildren();
+  if(!S.shop)return v.append(empty('💵','Aucune boutique','Le gérant ne vous a pas encore donné accès à une boutique.'));
+  if(S.me.role!=='owner')return v.append(empty('🔒','Réservé au gérant','Seul le gérant peut voir les commissions des employés.'));
+  v.append(h('div',{className:'hd'},h('h2',{textContent:'Commissions par employé'}),h('p',{className:'sub',textContent:'Répartition des ventes par employé pour calcul des commissions.'})));
+  const byEmp=new Map();
+  S.recs.filter(r=>!r.canceled_at&&r.created_by).forEach(r=>{
+    const key=r.created_by;
+    if(!byEmp.has(key))byEmp.set(key,{name:S.names[r.created_by]||'Employé sans nom',total:0,count:0});
+    const c=byEmp.get(key);c.total+= +r.total;c.count++;
+  });
+  if(!byEmp.size)return v.append(empty('📭','Aucune vente','Aucune vente n\'a été enregistrée par un employé pour cette boutique.'))
+  let grandTotal=0;
+  const rows=[...byEmp.entries()].sort((a,b)=>b[1].total-a[1].total).map(([key,c])=>{grandTotal+=c.total;return h('div',{className:'rc'},h('div',{className:'m'},h('b',{textContent:c.name}),h('small',{textContent:c.count+' reçu(s)'})),h('div',{className:'a',textContent:fmt(c.total)}))});
+  v.append(h('div',{className:'kpis'},kpi('Total ventes',grandTotal,1),kpi('Employés actifs',byEmp.size)));
+  v.append(h('b',{textContent:'Détail par employé',style:'display:block;margin-top:12px'}));
+  v.append(h('div',{id:'commList'}),...rows);
+}
+
+
+/* ---------- envoi rapport hebdomadaire par email ---------- */
+async function sendWeeklyReport(){const now=new Date();const weekAgo=new Date(now.getTime()-7*24*3600*1000);const valid=S.recs.filter(r=>!r.canceled_at);const week=valid.filter(r=>new Date(r.created_at)>=weekAgo);const money=a=>a.reduce((s,r)=>s+ +r.total,0);const ca=money(week);const count=week.length;const debts=S.recs.filter(r=>r.pay_status==='pend').reduce((s,r)=>s+ +r.total,0);const exp=await (await sb.from('expenses').select('amount').eq('shop_id',S.shop.id)).data||[];const expTotal=exp.reduce((s,e)=>s+ +e.amount,0);
+  const body=`Rapport hebdomadaire Amana — ${now.toLocaleDateString('fr-FR')}
+
+Période : ${weekAgo.toLocaleDateString('fr-FR')} à ${now.toLocaleDateString('fr-FR')}
+Boutique : ${S.shop.name}
+
+Chiffre d’affaires (7j) : ${fmt(ca)} FCFA
+Nombre de reçus : ${count}
+Dettes en attente : ${fmt(debts)} FCFA
+Dépenses : ${fmt(expTotal)} FCFA
+Bénéfice estimé : ${fmt(ca-expTotal)} FCFA
+
+— Généré par Amana`;
+  const subject=encodeURIComponent('Rapport hebdomadaire Amana — '+S.shop.name);
+  const bodyEnc=encodeURIComponent(body);
+  open('mailto:?subject='+subject+'&body='+bodyEnc);
+  toast('Client email ouvert ✔','ok');
+}
+
+function statsView(){
+
+
+
+
   if(!S.shop)return v.append(empty('📊','Aucune boutique','Le gérant ne vous a pas encore donné accès à une boutique.'));
   const now=new Date(),startMonth=new Date(now.getFullYear(),now.getMonth(),1);
   const valid=S.recs.filter(r=>!r.canceled_at);
@@ -378,7 +608,8 @@ function statsView(){const v=$('view');v.replaceChildren();
     h('div',{className:'card'},h('b',{textContent:'Par statut'}),
       ...(byStatus.map(x=>h('div',{className:'stat-list'},row('◦',x.l,null,String(x.count))))),
       h('div',{className:'stat-list'},row('✖','Annulés (ensemble affiché)',null,String(cancelCount)))),
-    S.recs.length>=150&&h('p',{className:'sub-note',textContent:'⏳ Basé sur les 150 derniers reçus chargés — les statistiques ne couvrent pas tout l’historique.'}));return}
+    S.recs.length>=150&&h('p',{className:'sub-note',textContent:'⏳ Basé sur les 150 derniers reçus chargés — les statistiques ne couvrent pas tout l’historique.'}),
+    h('button',{className:'btn g',style:'margin-top:16px;text-align:center;display:block;width:100%',textContent:'📧 Envoyer le rapport par email',onclick:sendWeeklyReport}));return}
 /* ---------- Analytique (dashboard gérant) ---------- */
 const esc=(x)=>String(x??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const anKpi=(label,val,sub,cls='')=>h('div',{className:'an-kpi '+cls},h('span',{textContent:label}),h('b',{textContent:val}),sub?h('small',{textContent:sub}):null);
@@ -625,7 +856,7 @@ function adjustSheet(p){const d=h('input',{type:'number',inputMode:'numeric',pla
 
 const ln=(a,b)=>h('div',{className:'ln'},h('span',{textContent:a}),h('b',{textContent:b}));
 function paper(r,items){const s=S.shop;return h('div',{className:'paper'},
-  h('div',{className:'c'},s.logo_url&&h('img',{src:s.logo_url,alt:''}),h('b',{style:'display:block',textContent:s.name}),h('div',{className:'sub',textContent:[s.city,s.phone,s.tax_id].filter(Boolean).join(' · ')})),h('hr'),
+  h('div',{className:'c'},s.logo_url&&h('img',{src:s.logo_url,alt:''}),h('b',{style:'display:block',textContent:s.name}),h('div',{className:'sub',textContent:[s.city,s.phone].filter(Boolean).join(' · ')}),s.tax_id&&h('div',{className:'sub',textContent:'NIU / RCCM : '+s.tax_id})),h('hr'),
   ln('N°',pad(r.number)),ln('Date',dt(r.paid_at||r.created_at)),ln('Mode',M[r.method]),r.tx_id&&ln('TxID',r.tx_id),r.customer_name&&ln('Client',r.customer_name),h('hr'),
   ...items.map(i=>ln(`${i.qty} x ${i.label}`,fmt(i.qty*i.price))),h('div',{className:'tot'},h('small',{textContent:'TOTAL'}),h('b',{textContent:fmt(r.total)})),
   h('div',{className:'stamp '+(r.canceled_at?'chk':r.pay_status),textContent:r.canceled_at?'✖ ANNULÉ — '+r.cancel_reason:ST[r.pay_status]}),
@@ -703,6 +934,15 @@ function newReceipt(){let mc;const st={items:[{label:'',qty:1,price:''}],method:
   const box=h('div',{className:'ocr',textContent:'📸 Ou photographiez le SMS (secours)',onclick:()=>file.click()});
   const manualLbl=h('div',{className:'sub',style:'text-align:center;margin:2px 0',textContent:'— Ou saisissez manuellement —'});
   openSheet('Nouveau reçu',h('div',{className:'in'},h('div',{className:'sub',style:'text-align:center;font-weight:700;color:var(--mut)',textContent:'1️⃣ Collez le texte du SMS'}),paste,stat,h('div',{className:'sub',style:'text-align:center;margin-top:4px;font-weight:700',textContent:'2️⃣ Photo du SMS (secours)'}),box,file,bar,barTxt,manualLbl,
+    h('div',{className:'sub',style:'text-align:center;margin:8px 0',textContent:'📱 QR Code paiement'}),
+    h('div',{id:'qrDisplay',className:'c',style:'margin:8px 0'}),
+    h('button',{className:'btn g sm',textContent:'Générer QR code paiement',onclick:async()=>{
+      const total=st.items.reduce((s,i)=>s+(+i.qty||0)*(+i.price||0),0);
+      const phone=S.shop.phone||'';
+      const qrData='MOMO:'+phone+':'+total+':FCFA';
+      const qrDiv=$('qrDisplay');qrDiv.replaceChildren();
+      try{new QRCode(qrDiv,{text:qrData,width:200,height:200});toast('QR code généré ✔','ok')}catch(e){toast('Erreur QR code','err')}
+    }}),
     cu,list,h('button',{className:'btn g sm',textContent:'+ Ajouter un article',onclick:()=>{st.items.push({label:'',qty:1,price:''});rows()}}),total,
     (mc=chips(Object.entries(M),()=>st.method,v=>st.method=v)),chips([['ok','Confirmé'],['pend','En attente'],['chk','À vérifier']],()=>st.status,v=>st.status=v),tx,go))}
 
@@ -711,17 +951,66 @@ const swt=(l,c,on)=>h('label',{className:'sw'},h('span',{textContent:l}),h('inpu
 async function staffView(){const v=$('view');v.replaceChildren(h('div',{className:'empty',textContent:'Chargement…'}));
   const [a,b]=await Promise.all([sb.from('members').select('id,role,display_name,active,skills').eq('role','employee'),sb.from('member_shops').select('member_id,shop_id,permissions')]);
   S.emps=a.data||[];S.mps=b.data||[];
-  v.replaceChildren(h('div',{className:'hd'},h('h2',{textContent:'Mon équipe'}),h('button',{className:'btn sm',textContent:'+ Employé',onclick:addEmp})),
+  v.replaceChildren(h('div',{className:'hd'},h('h2',{textContent:'Mon équipe'}),h('button',{className:'btn sm',textContent:'+ Employé',onclick:addEmp}),h('button',{className:'btn sm g',textContent:'📊 Matrice des droits',onclick:matrixView})),
     ...(S.emps.length?S.emps.map((m,i)=>{const n=S.mps.filter(x=>x.member_id===m.id).length,e=h('div',{className:'rc',onclick:()=>permsSheet(m)},h('div',{className:'av',textContent:m.display_name[0].toUpperCase()}),
-      h('div',{className:'m'},h('b',{textContent:m.display_name}),h('small',{textContent:n+' boutique(s)'})),h('span',{className:'tag'+(m.active?'':' off'),textContent:m.active?'Actif':'Désactivé'}));e.style.animationDelay=i*40+'ms';return e}):[empty('👥','Aucun employé','Ajoutez un employé puis choisissez ce qu’il peut faire.')]))}
-function addEmp(){const n=h('input',{placeholder:'Nom complet'}),u=h('input',{placeholder:'Identifiant (ex. fatou)'}),p=h('input',{type:'password',placeholder:'Mot de passe',autocomplete:'new-password'}),hint=h('p',{className:'sub',style:'margin:0;font-size:.72rem'}),b=h('button',{className:'btn',textContent:'Créer le compte'});
+      h('div',{className:'m'},h('b',{textContent:m.display_name}),h('small',{textContent:n+' boutique(s)'})),h('span',{className:'tag'+(m.active?'':' off'),textContent:m.active?'Actif':'Désactivé'}));e.style.animationDelay=i*40+'ms';return e}):[empty('👥','Aucun employé','Ajoutez un employé puis choisissez ce qu’il peut faire.')]))};
+
+async function matrixView(){const v=$('view');v.replaceChildren(h('div',{className:'hd'},h('h2',{textContent:'Matrice des droits'}),h('button',{className:'btn sm',textContent:'← Retour',onclick:staffView})));
+  if(!S.emps.length)return v.append(empty('👥','Aucun employé','Aucun employé à afficher.'));
+  v.append(h('p',{className:'sub',textContent:'Chaque cellule = permissions de cet employé sur cette boutique.'}));
+  const tbl=h('table',{style:'width:100%;border-collapse:collapse;font-size:.85rem'});
+  const thead=h('thead');thead.append(h('tr',{},h('th',{style:'text-align:left;padding:6px'},'Employé'),...S.shops.map(s=>h('th',{style:'text-align:center;padding:6px'},s.name))));
+  tbl.append(thead);
+  const tbody=h('tbody');
+  for(const m of S.emps){
+    const tr=h('tr');tr.append(h('td',{style:'padding:6px;font-weight:600'},m.display_name));
+    for(const s of S.shops){
+      const cur=(S.mps.find(x=>x.member_id===m.id&&x.shop_id===s.id)||{}).permissions;
+      let txt='—';let cls='empty';
+      if(cur){const on=Object.keys(PERMS).filter(k=>cur[k]);txt=on.length?on.join(','):'aucun';cls=on.length?'ok':'none';}
+      tr.append(h('td',{style:'padding:6px;text-align:center;'+(cls==='ok'?'color:var(--ok);font-weight:600':cls==='none'?'color:#c62828':'color:#999')},txt));
+    }
+    tbody.append(tr);
+  }
+  tbl.append(tbody);
+  v.append(tbl);
+  v.append(h('p',{className:'sub',style:'margin-top:12px',textContent:'Légende : — = aucun accès, liste = permissions actives sur cette boutique.'}));}
+function addEmp(){
+  const n=h('input',{placeholder:'Nom complet'});
+  const u=h('input',{placeholder:'Identifiant (ex. fatou)'});
+  const p=h('input',{type:'password',placeholder:'Mot de passe',autocomplete:'new-password'});
+  const hint=h('p',{className:'sub',style:'margin:0;font-size:.72rem'});
+  const roleSel=h('select',{style:'width:100%;padding:6px;margin-top:4px'},
+    [['none','Aucun rôle prédéfini (configuré après)'],['cashier','Caissier'],['accountant','Comptable'],['stock','Gestionnaire des stocks']]
+      .map(([k,l])=>h('option',{value:k},l)));
+  const b=h('button',{className:'btn',textContent:'Créer le compte'});
   attachPwHint(p,hint,'emp');
-  b.onclick=()=>run(b,async()=>{if(!empOk(p.value))throw new Error('emp_password_policy');const j=await fn({action:'create',display_name:n.value,username:u.value,password:p.value}),
-    txt=`Amana – identifiant : ${j.login}\nMot de passe : ${p.value}`;
-    openSheet('Compte créé ✔',h('div',{className:'in'},h('div',{className:'card',style:'white-space:pre-line;font-weight:600',textContent:txt}),h('p',{className:'sub',textContent:'Remettez ces informations à l’employé. Il se connecte via l’onglet « Employé ».'}),
-      h('button',{className:'btn',textContent:'Copier',onclick:()=>navigator.clipboard.writeText(txt).then(()=>toast('Copié','ok'))})));staffView()});
-  openSheet('Nouvel employé',h('div',{className:'in'},n,u,p,hint,b))}
-function permsSheet(m){const box=h('div',{});
+  b.onclick=()=>{
+    run(b,async()=>{
+      if(!empOk(p.value))throw new Error('emp_password_policy');
+      const j=await fn({action:'create',display_name:n.value,username:u.value,password:p.value,role:roleSel.value});
+      const txt=`Amana – identifiant : ${j.login}
+Mot de passe : ${p.value}`;
+      openSheet('Compte créé ✔',h('div',{className:'in'},
+        h('div',{className:'card',style:'white-space:pre-line;font-weight:600',textContent:txt}),
+        h('p',{className:'sub',textContent:'Remettez ces informations à l’employé. Il se connecte via l’onglet « Employé ».'}),
+        h('button',{className:'btn',textContent:'Copier',onclick:()=>navigator.clipboard.writeText(txt).then(()=>toast('Copié','ok'))}
+      )));
+      closeSheet();
+      staffView();
+    });
+    if(roleSel.value!=='none'){
+      const em=S.emps&&S.emps.find(x=>x.id===j.id);
+      if(em)setTimeout(()=>permsSheet(em,roleSel.value),300);
+    }
+  };
+  openSheet('Nouvel employé',h('div',{className:'in'},
+    h('p',{className:'sub',style:'margin-bottom:6px'},'Rôle suggéré (optionnel, modifiable plus tard)'),
+    roleSel,n,u,p,hint,b));
+}
+
+function permsSheet(m,rolePreset=null){const box=h('div',{});
+  const isSelf = m.id === S.me.id;
   const skillsInput=h('input',{placeholder:'ex. vendeur, comptable, trésorier',value:m.skills||'',maxlength:500});
   const saveSkills=async()=>{const v=(skillsInput.value||'').trim();if(v===(m.skills||'').trim())return;
     try{const r=await rpc('update_member_skills',{p_member:m.id,p_skills:v});m.skills=r.skills!=null?r.skills:v;
@@ -730,18 +1019,34 @@ function permsSheet(m){const box=h('div',{});
   let skillsTimer;
   skillsInput.addEventListener('change',()=>{clearTimeout(skillsTimer);skillsTimer=setTimeout(saveSkills,600)});
   box.append(h('div',{className:'card'},h('b',{textContent:'Compétences'}),h('p',{className:'sub',textContent:'Compétences déclarées de cet employé, séparées par des virgules. Elles s’affichent sur l’onglet Analytique de la direction.'}),skillsInput));
-  box.append(h('div',{className:'row2'},h('button',{className:'btn g sm',textContent:m.active?'Désactiver':'Réactiver',onclick:async()=>{try{await fn({action:m.active?'disable':'enable',member_id:m.id});closeSheet();staffView()}catch(e){toast(err(e),'err')}}}),
-    h('button',{className:'btn g sm',textContent:'Nouveau mot de passe',onclick:()=>{
+  box.append(h('p',{className:'sub',style:'margin:8px 0 0 0;text-align:center;text-transform:uppercase;letter-spacing:.5px;font-weight:700;color:var(--mut)'},'Rôles rapides'));
+  const applyRole=async(role)=>{for(const s of S.shops){const cur=(S.mps.find(x=>x.member_id===m.id&&x.shop_id===s.id)||{}).permissions,st={on:true,scope:true,create_receipt:false,cancel_receipt:false,export:false,view_stats:false,edit_shop:false};
+    if(role==='cashier'){st.create_receipt=true;st.scope=false;}
+    else if(role==='accountant'){st.scope=true;st.export=true;st.view_stats=true;}
+    else if(role==='manager'){st.create_receipt=true;st.cancel_receipt=true;st.export=true;st.view_stats=true;st.edit_shop=true;st.scope=true;}
+    let tm;clearTimeout(tm);tm=setTimeout(async()=>{const p={view_scope:st.scope?'all':'own',...Object.fromEntries(PERMS.map(([k])=>[k,st[k]]))};
+      try{await rpc('set_permissions',{p_member:m.id,p_shop:s.id,p_perms:p});S.mps=S.mps.filter(x=>!(x.member_id===m.id&&x.shop_id===s.id));if(p)S.mps.push({member_id:m.id,shop_id:s.id,permissions:p});}catch(e){toast(err(e),'err')}},350);}
+    toast('Rôle « '+role+' » appliqué ✔','ok');permsSheet(m);};
+  box.append(h('div',{className:'row2'},h('button',{className:'btn sm',textContent:'Caissier',onclick:()=>applyRole('cashier')}),h('button',{className:'btn sm',textContent:'Comptable',onclick:()=>applyRole('accountant')}),h('button',{className:'btn sm g',textContent:'Gérant adjoint',onclick:()=>applyRole('manager')})));
+  box.append(h('div',{className:'row2'},h('button',{className:'btn g sm'+(isSelf?' off':''),textContent:m.active?'Désactiver':'Réactiver',onclick:isSelf?()=>toast('Impossible de se désactiver soi-même','err'):async()=>{try{await fn({action:m.active?'disable':'enable',member_id:m.id});closeSheet();staffView()}catch(e){toast(err(e),'err')}}}),h('button',{className:'btn g sm',textContent:'Nouveau mot de passe',onclick:()=>{
       const p=h('input',{type:'password',placeholder:'Nouveau mot de passe',autocomplete:'new-password'}),hint=h('p',{className:'sub',style:'margin:0;font-size:.72rem'}),c=h('input',{type:'password',placeholder:'Confirmer le mot de passe',autocomplete:'new-password'}),b=h('button',{className:'btn',textContent:'Changer le mot de passe'});
       attachPwHint(p,hint,'emp');
       b.onclick=()=>run(b,async()=>{const v=p.value;if(!empOk(v))throw new Error('emp_password_policy');if(v!==c.value)throw new Error('password_mismatch');await fn({action:'password',member_id:m.id,password:v});closeSheet();toast('Mot de passe changé ✔ — l’employé devra se reconnecter','ok')});
       openSheet('Mot de passe de '+m.display_name,h('div',{className:'in'},h('p',{className:'sub',textContent:'L’employé devra utiliser ce mot de passe dès sa prochaine connexion. Transmettez-le-lui sur un canal de confiance.'}),p,hint,c,b))}})));
   S.shops.forEach(s=>{const cur=(S.mps.find(x=>x.member_id===m.id&&x.shop_id===s.id)||{}).permissions,st={on:!!cur,scope:!!cur&&cur.view_scope==='all',...Object.fromEntries(PERMS.map(([k])=>[k,!!(cur&&cur[k])]))};let tm;
-    const save=()=>{clearTimeout(tm);tm=setTimeout(async()=>{const p=st.on?{view_scope:st.scope?'all':'own',...Object.fromEntries(PERMS.map(([k])=>[k,st[k]]))}:null;
+    const save=()=>{clearTimeout(tm);tm=setTimeout(async()=>{
+      if(isSelf&&(!st.create_receipt||!st.edit_shop||!st.on)){st.create_receipt=true;st.edit_shop=true;st.on=true;toast('Impossible de retirer ses propres droits gérant','err');}
+      const p=st.on?{view_scope:st.scope?'all':'own',...Object.fromEntries(PERMS.map(([k])=>[k,st[k]]))}:null;
       try{await rpc('set_permissions',{p_member:m.id,p_shop:s.id,p_perms:p});S.mps=S.mps.filter(x=>!(x.member_id===m.id&&x.shop_id===s.id));if(p)S.mps.push({member_id:m.id,shop_id:s.id,permissions:p});toast('Enregistré ✔','ok')}catch(e){toast(err(e),'err')}},350)};
     const sub=h('div',{className:'subsw'+(st.on?'':' off')},swt('Voir tous les reçus de la boutique',st.scope,v=>{st.scope=v;save()}),...PERMS.map(([k,l])=>swt(l,st[k],v=>{st[k]=v;save()})));
     box.append(h('div',{className:'blk'},swt('Accès à « '+s.name+' »',st.on,v=>{st.on=v;sub.classList.toggle('off',!v);save()}),sub))});
-  openSheet(m.display_name,box)}
+  box.append(h('div',{className:'card',style:'margin-top:12px'},h('b',{textContent:'Historique des modifications de droits'},h('small',{className:'sub',style:'font-weight:normal;margin-left:8px'},'(dernières 10)')),h('div',{id:'permHist'+m.id,style:'font-size:.8rem;color:#666'},'Chargement…')));
+  (async()=>{try{const {data:hist}=await sb.from('audit_log').select('action,created_at,entity_id').eq('entity_id',m.id).in('action',['permissions.set','permissions.remove']).order('created_at',{ascending:false}).limit(10);
+    const cont=$('permHist'+m.id);cont.replaceChildren();
+    if(!hist||!hist.length)cont.append(h('p',{className:'sub',textContent:'Aucune modification de droits enregistrée.'}));
+    else cont.append(...hist.map(r=>h('div',{style:'padding:4px 0;border-bottom:1px solid #eee'},h('small',{textContent:new Date(r.created_at).toLocaleString('fr-FR')+' — '+ (r.action==='permissions.set'?'Droits modifiés':'Droits retirés')}))));
+  }catch(e){$('permHist'+m.id).replaceChildren(h('p',{className:'sub',textContent:'Historique indisponible.'}));}})();
+  if(rolePreset){applyRole(rolePreset);}openSheet(m.display_name,box)}
 
 function securityCard(){if(!S.user||!S.user.email)return null;   // les comptes OTP phone n'ont pas d'email
   const cur=h('input',{type:'password',placeholder:'Mot de passe actuel',autocomplete:'current-password'}),
@@ -827,7 +1132,19 @@ async function webauthnAuthenticate(){
 
 function userIdForWebauthn(){ return S.user ? S.user.id : ''; }
 
+
+/* ---------- sauvegarde Google Drive ---------- */
+async function backupDrive(){const v=$('view');
+  const data={receipts:S.recs,expenses:await (await sb.from('expenses').select('*').eq('shop_id',S.shop.id)).data,shop:S.shop,org:S.org,exportedAt:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='amana-sauvegarde-'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  URL.revokeObjectURL(url);
+  toast('Sauvegarde téléchargée ✔','ok');
+}
+
 function setView(){const v=$('view'),s=S.shop;v.replaceChildren(h('div',{className:'hd'},h('h2',{textContent:'Réglages'})));
+
   if(s&&can('edit_shop')){const f=['name','city','phone','tax_id','receipt_message'],L=['Nom de la boutique','Ville / adresse','Téléphone','NIU / RCCM','Message de fin de reçu'],I=f.map((k,i)=>h('input',{placeholder:L[i],value:s[k]||''})),lg=h('input',{type:'file',accept:'image/*',onchange:e=>logoUp(e.target.files[0])}),b=h('button',{className:'btn',textContent:'Enregistrer'});
     b.onclick=()=>run(b,async()=>{const u=Object.fromEntries(f.map((k,i)=>[k,I[i].value||null]));u.name=u.name||s.name;const r=await sb.from('shops').update(u).eq('id',s.id);if(r.error)throw r.error;Object.assign(s,u);shell();toast('Boutique enregistrée ✔','ok')});
     v.append(h('div',{className:'card in',style:'display:grid;gap:10px'},h('b',{textContent:'Ma boutique'}),...I,h('label',{className:'sub',textContent:'Logo de la boutique'}),lg,b))}
@@ -853,6 +1170,7 @@ function setView(){const v=$('view'),s=S.shop;v.replaceChildren(h('div',{classNa
   v.append(h('div',{className:'card'},h('b',{textContent:S.org.name||'Mon entreprise'}),h('p',{className:'sub',textContent:'Offre : '+(S.org.plan==='pro'?'Pro ⭐':'Gratuite')}),h('p',{className:'sub',textContent:S.me.display_name+' · '+(S.me.role==='owner'?'Gérant':'Employé')})),
     S.me.role==='owner'&&h('button',{className:'btn g',style:'margin-bottom:8px',textContent:'📋 Journal d’activité',onclick:journal}),
     h('button',{className:'btn g',style:'margin-bottom:8px',textContent:'❓ Aide, FAQ et CGU',onclick:help}),
+    h('button',{className:'btn g',textContent:'💾 Sauvegarder (JSON)',onclick:backupDrive}),
     h('button',{className:'btn g',textContent:'Se déconnecter',onclick:()=>sb.auth.signOut()}),
     h('button',{className:'btn g',hidden:true,textContent:'⬇ Installer Amana',onclick:installPwa}))}
 

@@ -86,7 +86,7 @@ check('mobile-web-app-capable', /<meta name="mobile-web-app-capable" content="ye
 check('enregistrement du service worker dans le boot', /navigator\.serviceWorker\.register\('\.\/service-worker\.js'\)/.test(html));
 
 /* ---------- 7. ids utilisés par le JS existent ---------- */
-const allowedDynamic = new Set(['list']);
+const allowedDynamic = new Set(['list','debtsList','qrDisplay']);
 const staticIds = new Set([...html.matchAll(/id="([^"]+)"/g)].map(m => m[1]));
 const usedIds = new Set([...html.matchAll(/\$\('([^']+)'\)/g)].map(m => m[1]));
 check('tous les ids $() utilisés existent (ou dynamiques autorisés)', [...usedIds].every(id => staticIds.has(id) || allowedDynamic.has(id)),
@@ -180,9 +180,9 @@ check('frontend : journal inclut auth.password', /'auth\.password':'a changé so
 check('frontend : appel log_auth_self_service après changement self-service', /log_auth_self_service/.test(html2));
 
 /* ---------- 10r2. Politique allégée employé + Analytique permanent + validation article ---------- */
-check('frontend : politique employé (8+, sans dictionnaire)', /const EMP_MIN = 8/.test(html2) && /const empOk = /.test(html2));
+check('frontend : politique employé (4+, sans complexité)', /const EMP_MIN = 4/.test(html2) && /const empOk = /.test(html2));
 check('frontend : hint allégé pour les employés', /attachPwHint\(p,hint,'emp'\)/.test(html2) && /attachPwHint\(nu,hint\)/.test(html2));
-check('frontend : ERR map emp_password_policy', /emp_password_policy:'Mot de passe trop faible : 8 caractères minimum/.test(html2));
+check('frontend : ERR map emp_password_policy', /emp_password_policy:'Mot de passe trop faible : 4 caractères minimum/.test(html2));
 check('frontend : validation locale article par article (reçu)', /Validation locale article par article/.test(html2) && /Article '\+\(i\+1\)/.test(html2));
 check('frontend : Analytique — cache permanent (lecture/écriture/invalidation)', /function analyticsCacheGet/.test(html2) && /function analyticsCacheSet/.test(html2) && /function invalidateAnalytics/.test(html2));
 check('frontend : Analytique — aucune limite 1500 (historique complet)', !/limit\(1500\)/.test(html2));

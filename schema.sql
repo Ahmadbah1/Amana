@@ -470,6 +470,50 @@ grant select, insert, update, delete on webauthn_challenges to authenticated;
 -- 3) Déployer la fonction staff : supabase functions deploy staff
 --    (le fichier se trouve dans supabase/functions/staff/index.ts)
 --
+-- ============================================================
+-- DÉPENSES — suivi des sorties d'argent pour calcul du bénéfice net
+-- ============================================================
+create table if not exists expenses(
+  id uuid primary key default gen_random_uuid(),
+  shop_id uuid not null references shops on delete cascade,
+  label text not null check (char_length(trim(label)) between 1 and 200),
+  amount numeric(14,0) not null check (amount > 0),
+  category text not null default 'autre' check (category in ('achat','loyer','energie','carburant','autre')),
+  user_id uuid not null references auth.users on delete cascade,
+  created_at timestamptz default now());
+create index if not exists idx_expenses_shop on expenses(shop_id, created_at desc);
+
+alter table expenses enable row level security;
+create policy expenses_shop on expenses for all using (
+  shop_id in (select id from shops where org_id in (select org_id from members where user_id=auth.uid() and active))
+) with check (
+  shop_id in (select id from shops where org_id in (select org_id from members where user_id=auth.uid() and active))
+);
+grant select, insert, update, delete on expenses to authenticated;
+
 -- 4) Déployer la fonction webauthn : supabase functions deploy webauthn
 --    (le fichier se trouve dans supabase/functions/webauthn/index.ts)
 -- ============================================================
+
+-- 7) Achats fournisseurs (comptabilité - employé comptable)
+create table if not exists purchases(
+  id uuid primary key default gen_random_uuid(),
+  shop_id uuid not null references shops on delete cascade,
+  supplier text not null check (char_length(trim(supplier)) between 1 and 200),
+  label text not null check (char_length(trim(label)) between 1 and 200),
+  amount_ht numeric(14,0) not null check (amount_ht >= 0),
+  amount_tva numeric(14,0) not null default 0 check (amount_tva >= 0),
+  amount_ttc numeric(14,0) generated always as (amount_ht + amount_tva) stored,
+  due_date timestamptz,
+  status text not null default 'pending' check (status in ('pending','paid')),
+  user_id uuid not null references auth.users on delete cascade,
+  created_at timestamptz default now());
+create index if not exists idx_purchases_shop on purchases(shop_id, created_at desc);
+
+alter table purchases enable row level security;
+create policy purchases_shop on purchases for all using (
+  shop_id in (select id from shops where org_id in (select org_id from members where user_id=auth.uid() and active))
+) with check (
+  shop_id in (select id from shops where org_id in (select org_id from members where user_id=auth.uid() and active))
+);
+grant select, insert, update, delete on purchases to authenticated;
